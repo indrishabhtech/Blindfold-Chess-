@@ -1,0 +1,1346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BlindChess Master Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#06060f;--surf:#0c0c1c;--card:#111125;--card2:#181832;--card3:#1e1e40;
+  --bord:rgba(255,255,255,0.06);--bord2:rgba(255,255,255,0.1);
+  --gold:#f2c14e;--gold2:#c9922a;--gold3:#ffdc80;
+  --cream:#eeddb5;--brn:#b58863;--brn2:#8a6240;
+  --grn:#3ecf8e;--red:#e8534a;--blu:#4a9eff;--pur:#9b6dff;
+  --txt:#e8e8ff;--mut:#6060a0;--mut2:#4a4a80;
+  --nav:62px;--r:14px;--rs:9px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overscroll-behavior:none}
+body{font-family:'Syne',system-ui,sans-serif;background:var(--bg);color:var(--txt);min-height:100%;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+#app{max-width:480px;margin:0 auto;min-height:100vh;position:relative}
+
+/* ── HEADER ── */
+.hdr{position:sticky;top:0;z-index:100;background:rgba(6,6,15,0.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--bord);padding:10px 16px;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:'Cinzel',serif;font-size:1.05rem;font-weight:900;color:var(--gold);display:flex;align-items:center;gap:7px;letter-spacing:0.06em}
+.logo-i{font-size:1.2rem;filter:drop-shadow(0 0 8px rgba(242,193,78,0.6))}
+.hpills{display:flex;gap:6px}
+.hpill{background:var(--card);border:1px solid var(--bord);border-radius:20px;padding:4px 9px;font-size:0.75rem;font-weight:700}
+.hpill.xp{color:var(--gold)}.hpill.str{color:#ff8c42}.hpill.dc{color:var(--grn)}
+
+/* ── SCREENS ── */
+.scr{display:none;padding:14px 14px calc(var(--nav) + 20px);min-height:calc(100vh - 50px);animation:fuA .2s ease}
+.scr.active{display:block}
+@keyframes fuA{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── BOTTOM NAV ── */
+.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:var(--nav);background:rgba(6,6,15,0.97);backdrop-filter:blur(20px);border-top:1px solid var(--bord);display:flex;z-index:200}
+.nb{flex:1;background:none;border:none;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-family:'Syne',sans-serif;font-size:0.6rem;font-weight:700;cursor:pointer;transition:color .15s;padding:6px 0;text-transform:uppercase;letter-spacing:0.07em;position:relative}
+.nb .ni{font-size:1.25rem;line-height:1;transition:transform .15s}
+.nb.active{color:var(--gold)}.nb.active .ni{transform:scale(1.18)}
+.nb.active::after{content:'';position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:18px;height:2px;background:var(--gold);border-radius:2px}
+
+/* ── HOME ── */
+.hero{background:linear-gradient(135deg,#0c0c28 0%,#160c28 50%,#0c1628 100%);border:1px solid rgba(242,193,78,0.12);border-radius:var(--r);padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
+.hero::after{content:'♛';position:absolute;bottom:-24px;right:-6px;font-size:8rem;opacity:0.03;pointer-events:none;line-height:1}
+.hero h2{font-family:'Cinzel',serif;font-size:1.05rem;color:var(--gold);margin-bottom:4px}
+.hero p{font-size:0.8rem;color:var(--mut);line-height:1.5}
+.lvrow{display:flex;justify-content:space-between;align-items:center;margin:11px 0 5px;font-size:0.76rem}
+.lvn{color:var(--gold);font-weight:700;font-size:0.78rem}
+.xpn{color:var(--mut);font-size:0.73rem}
+.xpt{height:5px;background:var(--card2);border-radius:3px;overflow:hidden}
+.xpf{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;transition:width .6s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 8px rgba(242,193,78,0.35)}
+.srow{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.sb{background:var(--card);border:1px solid var(--bord);border-radius:var(--rs);padding:10px 6px;text-align:center}
+.sb .v{font-size:1.2rem;font-weight:800;color:var(--gold);display:block;line-height:1.2}
+.sb .l{font-size:0.6rem;color:var(--mut);text-transform:uppercase;letter-spacing:0.07em;display:block;margin-top:1px}
+.sl{font-size:0.62rem;text-transform:uppercase;letter-spacing:0.14em;color:var(--mut);margin:12px 0 8px}
+.qg{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.qc{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:13px 11px;cursor:pointer;transition:all .14s;display:flex;flex-direction:column;gap:4px}
+.qc:active{transform:scale(0.96);background:var(--card2)}
+.qc .qi{font-size:1.4rem}.qc .qt{font-size:0.85rem;font-weight:700}.qc .qd{font-size:0.7rem;color:var(--mut)}
+.cstrip{background:linear-gradient(90deg,#0a1a0a,#10182a);border:1px solid rgba(62,207,142,0.22);border-radius:var(--r);padding:13px 15px;display:flex;align-items:center;gap:11px;cursor:pointer;margin-bottom:12px;transition:all .14s}
+.cstrip:active{transform:scale(0.98)}
+.ci2{font-size:1.7rem;flex-shrink:0}.ct2 h3{font-size:0.9rem;color:var(--grn);font-weight:700}.ct2 p{font-size:0.74rem;color:var(--mut);margin-top:2px}
+.dc-card{background:linear-gradient(135deg,#0f0f28,#1a0f28);border:1px solid rgba(155,109,255,0.22);border-radius:var(--r);padding:14px 15px;margin-bottom:12px;cursor:pointer;transition:all .14s}
+.dc-card:active{transform:scale(0.98)}
+.dc-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
+.dc-tag{font-size:0.62rem;color:var(--pur);text-transform:uppercase;letter-spacing:0.1em;font-weight:700}
+.dc-done{font-size:0.7rem;color:var(--grn)}
+.dc-title{font-size:0.9rem;font-weight:700;margin-bottom:2px}
+.dc-desc{font-size:0.74rem;color:var(--mut)}
+
+/* ── LESSONS ── */
+.sttl{margin-bottom:12px}.sttl h2{font-family:'Cinzel',serif;font-size:1.15rem;color:var(--gold)}.sttl p{font-size:0.79rem;color:var(--mut);margin-top:3px}
+.lstack{display:flex;flex-direction:column;gap:8px}
+.li{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:13px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;transition:all .14s}
+.li:active{transform:scale(0.98);background:var(--card2)}
+.li.done{border-color:rgba(62,207,142,0.2)}.li.locked{opacity:0.4;cursor:not-allowed}
+.lic{width:44px;height:44px;border-radius:11px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;flex-shrink:0}
+.li.done .lic{background:rgba(62,207,142,0.1)}
+.lin{flex:1}.lin h3{font-size:0.87rem;font-weight:700}.lin p{font-size:0.72rem;color:var(--mut);margin-top:2px}
+.lbg{font-size:0.67rem;padding:3px 8px;border-radius:20px;background:var(--card2);color:var(--mut);white-space:nowrap;flex-shrink:0}
+.li.done .lbg{background:rgba(62,207,142,0.12);color:var(--grn)}
+
+/* ── DRILLS ── */
+.tabs{display:flex;gap:0;margin-bottom:12px;background:var(--card);border:1px solid var(--bord);border-radius:10px;padding:3px}
+.tab{flex:1;padding:8px 4px;background:none;border:none;font-family:'Syne',sans-serif;font-size:0.72rem;font-weight:700;color:var(--mut);cursor:pointer;border-radius:7px;transition:all .15s;text-transform:uppercase;letter-spacing:0.06em}
+.tab.active{background:var(--card2);color:var(--gold)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.di{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:13px 11px;cursor:pointer;transition:all .14s}
+.di:active{transform:scale(0.95);background:var(--card2)}
+.dtop{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px}
+.dem{font-size:1.6rem}
+.dtag{font-size:0.59rem;padding:2px 6px;border-radius:20px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em}
+.dtag.b{background:rgba(62,207,142,0.12);color:var(--grn)}.dtag.i{background:rgba(242,193,78,0.12);color:var(--gold)}.dtag.a{background:rgba(232,83,74,0.12);color:var(--red)}.dtag.v{background:rgba(74,158,255,0.12);color:var(--blu)}
+.di h3{font-size:0.84rem;font-weight:700;margin-bottom:2px}.di p{font-size:0.69rem;color:var(--mut);line-height:1.3}
+.dfoot{display:flex;align-items:center;gap:5px;margin-top:8px;font-size:0.68rem;color:var(--mut)}
+.dstars{color:var(--gold);font-size:0.72rem}
+
+/* ── GAMES ── */
+.gstack{display:flex;flex-direction:column;gap:9px}
+.gi{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:15px 14px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .14s}
+.gi:active{transform:scale(0.98);background:var(--card2)}
+.giw{width:52px;height:52px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0}
+.ginf h3{font-size:0.92rem;font-weight:700;margin-bottom:2px}.ginf p{font-size:0.75rem;color:var(--mut);line-height:1.3}
+.gtags{display:flex;gap:5px;margin-top:6px}
+.gtag{font-size:0.65rem;padding:2px 7px;border-radius:20px;background:var(--card2);color:var(--mut)}
+
+/* ── STATS ── */
+.stats-sec{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:16px;margin-bottom:10px}
+.stats-sec h3{font-size:0.78rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mut);margin-bottom:12px;font-weight:700}
+.accs{display:flex;flex-direction:column;gap:8px}
+.acc-row{display:flex;align-items:center;gap:10px}
+.acc-lbl{font-size:0.78rem;width:100px;flex-shrink:0;color:var(--txt)}
+.acc-bar{flex:1;height:6px;background:var(--card2);border-radius:3px;overflow:hidden}
+.acc-fill{height:100%;border-radius:3px;transition:width .5s ease}
+.acc-pct{font-size:0.72rem;color:var(--mut);width:32px;text-align:right;flex-shrink:0}
+.hmboard{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin-top:4px}
+.hmsq{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:0.45rem;font-weight:700;cursor:default;transition:background .3s;position:relative}
+.hm-tip{position:absolute;bottom:calc(100% + 3px);left:50%;transform:translateX(-50%);background:var(--card3);border:1px solid var(--bord2);border-radius:5px;padding:3px 6px;font-size:0.65rem;color:var(--txt);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:10}
+.hmsq:hover .hm-tip{opacity:1}
+.ach-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.ach{background:var(--card2);border:1px solid var(--bord);border-radius:10px;padding:10px 6px;text-align:center;transition:all .2s}
+.ach.unlocked{border-color:rgba(242,193,78,0.3);background:rgba(242,193,78,0.05)}
+.ach .aemj{font-size:1.5rem;margin-bottom:4px;filter:grayscale(1);transition:filter .2s}
+.ach.unlocked .aemj{filter:none}
+.ach .anm{font-size:0.62rem;color:var(--mut);font-weight:700;text-transform:uppercase;letter-spacing:0.04em;line-height:1.2}
+.ach.unlocked .anm{color:var(--gold)}
+.ws-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.ws-sq{background:rgba(232,83,74,0.1);border:1px solid rgba(232,83,74,0.2);border-radius:6px;padding:5px 10px;font-size:0.8rem;font-weight:700;color:var(--red);font-family:'Cinzel',serif}
+
+/* ── ACTIVE SCREEN ── */
+.brow{display:flex;align-items:center;gap:9px;margin-bottom:13px;cursor:pointer}
+.bbtn{width:33px;height:33px;border-radius:9px;background:var(--card);border:1px solid var(--bord);color:var(--txt);font-size:0.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.blbl{font-size:0.82rem;color:var(--mut)}
+.sdots{display:flex;gap:4px;margin-bottom:13px}
+.sdot{flex:1;height:3px;border-radius:2px;background:var(--card2);transition:background .3s}
+.sdot.done{background:var(--gold2)}.sdot.active{background:var(--gold);box-shadow:0 0 5px rgba(242,193,78,0.5)}
+.cb{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:15px;margin-bottom:11px;font-size:0.85rem;line-height:1.65}
+.cb h3{font-family:'Cinzel',serif;font-size:0.92rem;color:var(--gold);margin-bottom:9px}
+.hlb{background:var(--card2);border-left:3px solid var(--gold);border-radius:0 7px 7px 0;padding:9px 11px;margin:9px 0;font-size:0.81rem;line-height:1.6}
+.fbox{background:var(--card2);border:1px solid rgba(242,193,78,0.18);border-radius:var(--rs);padding:11px;text-align:center;margin:9px 0}
+.fbox .f{font-size:0.9rem;color:var(--gold);font-weight:700}.fbox .fn{font-size:0.73rem;color:var(--mut);margin-top:3px}
+.btn{width:100%;border-radius:var(--r);border:none;font-family:'Syne',sans-serif;font-weight:700;cursor:pointer;transition:all .14s}
+.btg{padding:13px;background:var(--gold);color:#1a0f00;font-size:0.94rem;box-shadow:0 4px 14px rgba(242,193,78,0.22);margin-top:9px}
+.btg:active{transform:scale(0.97);background:var(--gold2)}
+.btgh{padding:11px;background:transparent;color:var(--txt);border:1px solid var(--bord);font-size:0.85rem;margin-top:7px}
+.btgh:active{background:var(--card)}
+.dhdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:11px}
+.dprog{font-size:0.78rem;color:var(--mut)}
+.spill{background:var(--card);border:1px solid var(--bord);border-radius:20px;padding:4px 11px;font-size:0.76rem;font-weight:700;display:flex;gap:5px}
+.sc2{color:var(--grn)}.sw2{color:var(--red)}
+.qcard{background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:16px;text-align:center;margin-bottom:12px}
+.qlbl{font-size:0.69rem;color:var(--mut);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px}
+.qmain{font-size:2.3rem;font-weight:800;color:var(--gold);font-family:'Cinzel',serif;line-height:1;letter-spacing:0.05em}
+.qsub{font-size:0.79rem;color:var(--mut);margin-top:6px;line-height:1.4}
+.agrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:11px}
+.ab{padding:14px 9px;border-radius:var(--r);background:var(--card);border:2px solid var(--bord);color:var(--txt);font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;cursor:pointer;transition:all .14s;display:flex;align-items:center;justify-content:center;gap:5px}
+.ab:active{transform:scale(0.95)}
+.ab.cor{border-color:var(--grn);background:rgba(62,207,142,0.1);color:var(--grn)}
+.ab.wrg{border-color:var(--red);background:rgba(232,83,74,0.1);color:var(--red)}
+.fb{border-radius:var(--rs);padding:9px 13px;text-align:center;font-weight:700;font-size:0.82rem;margin-bottom:9px;display:none;line-height:1.4}
+.fb.show{display:block}
+.fb.ok{background:rgba(62,207,142,0.1);color:var(--grn);border:1px solid rgba(62,207,142,0.18)}
+.fb.no{background:rgba(232,83,74,0.1);color:var(--red);border:1px solid rgba(232,83,74,0.18)}
+.ibanner{background:var(--card2);border-radius:var(--rs);padding:10px 13px;font-size:0.8rem;color:var(--mut);text-align:center;margin-bottom:11px}
+.ccard{text-align:center;padding:22px 8px}
+.ccard .bem{font-size:3.2rem;margin-bottom:7px}
+.ccard .bnum{font-family:'Cinzel',serif;font-size:2.8rem;font-weight:700;color:var(--gold);line-height:1;margin-bottom:5px}
+.ccard h2{font-size:1.05rem;margin-bottom:3px}
+.ccard .sub{font-size:0.79rem;color:var(--mut)}
+.sr-badge{background:rgba(155,109,255,0.1);border:1px solid rgba(155,109,255,0.2);border-radius:var(--rs);padding:6px 11px;font-size:0.73rem;color:var(--pur);margin-bottom:10px;text-align:center;display:none}
+.sr-badge.show{display:block}
+
+/* ── BOARD ── */
+.bwrap{display:flex;justify-content:center;margin:11px 0}
+.board{display:grid;grid-template-columns:repeat(8,1fr);border:2px solid rgba(180,140,80,0.25);border-radius:5px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,0.55);width:min(350px,calc(100vw - 60px));height:min(350px,calc(100vw - 60px))}
+.sq{position:relative;display:flex;align-items:center;justify-content:center;cursor:pointer;user-select:none;font-size:clamp(0.85rem,4.2vw,1.6rem);line-height:1;transition:filter .1s;-webkit-tap-highlight-color:transparent}
+.sq:active{filter:brightness(0.78)}
+.sq.lt{background:var(--cream)}.sq.dk{background:var(--brn)}
+.sq.hi{background:#72c47e!important;box-shadow:inset 0 0 0 3px #3da05e}
+.sq.sel{background:#4a9eff!important;box-shadow:inset 0 0 0 3px #1a6acc}
+.sq.ok2{background:#5cb870!important}.sq.err2{background:#c94040!important}
+.sq.dim2{background:rgba(242,193,78,0.25)!important}
+.sq.pulse{animation:sqP .7s ease infinite}
+@keyframes sqP{0%,100%{box-shadow:inset 0 0 0 3px var(--gold)}50%{box-shadow:inset 0 0 0 3px rgba(242,193,78,0.2)}}
+.rlbl{position:absolute;top:1px;left:2px;font-size:0.48rem;font-weight:700;opacity:0.6;pointer-events:none;line-height:1;font-family:'Syne',sans-serif}
+.flbl{position:absolute;bottom:1px;right:2px;font-size:0.48rem;font-weight:700;opacity:0.6;pointer-events:none;line-height:1;font-family:'Syne',sans-serif}
+.sq.lt .rlbl,.sq.lt .flbl{color:var(--brn)}.sq.dk .rlbl,.sq.dk .flbl{color:var(--cream)}
+
+/* ── TIMER RING ── */
+.tring{width:55px;height:55px;position:relative;flex-shrink:0}
+.tring svg{transform:rotate(-90deg);width:55px;height:55px}
+.trbg{fill:none;stroke:var(--card2);stroke-width:4}
+.trfg{fill:none;stroke:var(--gold);stroke-width:4;stroke-linecap:round;stroke-dasharray:151;stroke-dashoffset:0;transition:stroke-dashoffset 1s linear,stroke .3s}
+.trfg.hot{stroke:var(--red)}
+.tnum{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:0.92rem;font-weight:800;color:var(--gold)}
+
+/* ── GAME STATUS ── */
+.gbar{display:flex;justify-content:space-between;align-items:center;background:var(--card);border:1px solid var(--bord);border-radius:var(--r);padding:11px 15px;margin-bottom:12px}
+.gbi{text-align:center}
+.gbv{font-size:1.45rem;font-weight:800;color:var(--gold);display:block;font-family:'Cinzel',serif;line-height:1}
+.gbl{font-size:0.59rem;color:var(--mut);text-transform:uppercase;letter-spacing:0.08em}
+.bmdisp{background:var(--card);border:1px solid rgba(242,193,78,0.13);border-radius:var(--r);padding:15px;text-align:center;margin-bottom:12px}
+.bmmove{font-size:1.6rem;font-weight:800;color:var(--gold);font-family:'Cinzel',serif}
+.bmsub{font-size:0.78rem;color:var(--mut);margin-top:5px}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cb2{padding:13px 7px;border-radius:var(--rs);background:var(--card);border:2px solid var(--bord);color:var(--txt);font-family:'Cinzel',serif;font-size:0.88rem;font-weight:700;cursor:pointer;transition:all .14s}
+.cb2:active{transform:scale(0.95)}
+.cb2.cor{border-color:var(--grn);background:rgba(62,207,142,0.1);color:var(--grn)}
+.cb2.wrg{border-color:var(--red);background:rgba(232,83,74,0.1);color:var(--red)}
+.gres{text-align:center;padding:18px 7px}
+.gri{font-size:3.3rem;margin-bottom:9px}
+.grtl{font-family:'Cinzel',serif;font-size:1.25rem;color:var(--gold);margin-bottom:5px}
+.grsc{font-size:2.6rem;font-weight:800;font-family:'Cinzel',serif}
+.grsu{color:var(--mut);font-size:0.8rem;margin-top:3px}
+.mbt{height:5px;background:var(--card2);border-radius:3px;overflow:hidden;margin:7px 0 9px}
+.mbf{height:100%;background:linear-gradient(90deg,var(--gold2),var(--gold));border-radius:3px;transition:width .1s linear}
+
+/* ── VIZ CHAIN ── */
+.vc-moves{background:var(--card2);border-radius:var(--rs);padding:12px;margin-bottom:11px}
+.vcm-title{font-size:0.68rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--mut);margin-bottom:8px}
+.vcm-item{font-size:0.86rem;padding:5px 0;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px}
+.vcm-item:last-child{border-bottom:none}
+.vcm-n{color:var(--gold);font-weight:700;font-family:'Cinzel',serif;font-size:0.8rem;width:16px}
+.vcm-t{color:var(--txt)}
+.vcm-new{color:var(--grn);font-weight:700}
+.vc-ask{background:var(--card);border:1px solid rgba(155,109,255,0.2);border-radius:var(--r);padding:14px;text-align:center;margin-bottom:12px}
+.vca-lbl{font-size:0.7rem;text-transform:uppercase;letter-spacing:0.1em;color:var(--pur);margin-bottom:7px}
+.vca-q{font-size:0.95rem;font-weight:700;line-height:1.4;color:var(--txt)}
+
+/* ── TOAST ── */
+.toast{position:fixed;top:56px;right:12px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#1a0f00;padding:6px 13px;border-radius:20px;font-weight:700;font-size:0.82rem;z-index:9999;pointer-events:none;animation:tA 2.1s ease forwards}
+@keyframes tA{0%{opacity:0;transform:translateY(-7px) scale(0.9)}15%{opacity:1;transform:translateY(0) scale(1)}75%{opacity:1}100%{opacity:0;transform:translateY(-4px)}}
+.ach-toast{background:linear-gradient(135deg,#2a1a50,#1a0f30);border:1px solid rgba(155,109,255,0.4);color:var(--pur)}
+.sr-indicator{position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--pur);opacity:0}
+.di.has-weak .sr-indicator{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+
+<header class="hdr">
+  <div class="logo"><span class="logo-i">♟</span><span>BlindChess</span></div>
+  <div class="hpills">
+    <div class="hpill xp" id="hxp">⚡ 0</div>
+    <div class="hpill str" id="hstr">🔥 0</div>
+    <div class="hpill dc" id="hdc">📅</div>
+  </div>
+</header>
+
+<!-- HOME -->
+<div id="scr-home" class="scr active">
+  <div class="hero">
+    <h2 id="greet">Train Your Mind's Eye 👁</h2>
+    <p>From 800 to Blind Master. Visualize boards, calculate moves, dominate blindfolded.</p>
+    <div class="lvrow"><span class="lvn" id="lvn">Beginner</span><span class="xpn" id="xpn">0 / 200 XP</span></div>
+    <div class="xpt"><div class="xpf" id="xpf" style="width:0%"></div></div>
+  </div>
+  <div class="srow">
+    <div class="sb"><span class="v" id="ststr">0</span><span class="l">🔥 Streak</span></div>
+    <div class="sb"><span class="v" id="stdr">0</span><span class="l">✅ Drills</span></div>
+    <div class="sb"><span class="v" id="stac">—</span><span class="l">🎯 Acc.</span></div>
+    <div class="sb"><span class="v" id="stxp">0</span><span class="l">⚡ XP</span></div>
+  </div>
+  <div class="dc-card" id="dc-home" onclick="Daily.start()">
+    <div class="dc-top"><span class="dc-tag">📅 Daily Challenge</span><span class="dc-done" id="dc-status"></span></div>
+    <div class="dc-title" id="dc-title">Loading...</div>
+    <div class="dc-desc" id="dc-desc"></div>
+  </div>
+  <p class="sl">Quick Drills</p>
+  <div class="qg">
+    <div class="qc" onclick="Drills.start('square-color')"><span class="qi">⬛</span><span class="qt">Square Color</span><span class="qd">Light or dark?</span></div>
+    <div class="qc" onclick="Drills.start('coordinate-tap')"><span class="qi">📍</span><span class="qt">Find Square</span><span class="qd">Tap the coordinate</span></div>
+    <div class="qc" onclick="Drills.start('same-diagonal')"><span class="qi">↗</span><span class="qt">Same Diagonal?</span><span class="qd">Are they connected?</span></div>
+    <div class="qc" onclick="Drills.start('fork-finder')"><span class="qi">⚔</span><span class="qt">Fork Finder</span><span class="qd">Can a knight fork?</span></div>
+  </div>
+  <div class="cstrip" onclick="Games.start('speed-coords')"><span class="ci2">⚡</span><div class="ct2"><h3>Speed Blitz</h3><p>Tap 20 squares in 60 sec — beat your best!</p></div></div>
+  <p class="sl">Continue Learning</p>
+  <div id="home-next"></div>
+</div>
+
+<!-- LESSONS -->
+<div id="scr-lessons" class="scr">
+  <div class="sttl"><h2>Lessons</h2><p>12 structured lessons from basics to mastery</p></div>
+  <div class="lstack" id="llist"></div>
+</div>
+
+<!-- DRILLS -->
+<div id="scr-drills" class="scr">
+  <div class="sttl"><h2>Training Drills</h2><p>Targeted repetition — spaced by your weak spots</p></div>
+  <div class="tabs">
+    <button class="tab active" onclick="Drills.tab(0)">Basic</button>
+    <button class="tab" onclick="Drills.tab(1)">Advanced</button>
+    <button class="tab" onclick="Drills.tab(2)">Visual</button>
+  </div>
+  <div class="dgrid" id="dgrid"></div>
+</div>
+
+<!-- GAMES -->
+<div id="scr-games" class="scr">
+  <div class="sttl"><h2>Games</h2><p>Apply skills under pressure</p></div>
+  <div class="gstack" id="glist"></div>
+</div>
+
+<!-- STATS -->
+<div id="scr-stats" class="scr">
+  <div class="sttl"><h2>Your Stats</h2><p>Track your blind chess evolution</p></div>
+  <div id="stats-content"></div>
+</div>
+
+<!-- ACTIVE -->
+<div id="scr-active" class="scr"></div>
+
+<nav class="bnav">
+  <button class="nb active" id="nb-home"    onclick="App.nav('home')"><span class="ni">🏠</span><span>Home</span></button>
+  <button class="nb"        id="nb-lessons" onclick="App.nav('lessons')"><span class="ni">📚</span><span>Learn</span></button>
+  <button class="nb"        id="nb-drills"  onclick="App.nav('drills')"><span class="ni">🎯</span><span>Drill</span></button>
+  <button class="nb"        id="nb-games"   onclick="App.nav('games')"><span class="ni">🎮</span><span>Play</span></button>
+  <button class="nb"        id="nb-stats"   onclick="App.nav('stats')"><span class="ni">📊</span><span>Stats</span></button>
+</nav>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   CHESS UTILITIES
+════════════════════════════════════════════ */
+const F='abcdefgh';
+const $=id=>document.getElementById(id);
+function sqColor(sq){return((sq.charCodeAt(0)-96)+parseInt(sq[1]))%2===0?'dark':'light'}
+function randSq(){return F[r8()]+r18()}
+function r8(){return Math.floor(Math.random()*8)}
+function r18(){return Math.floor(Math.random()*8)+1}
+function allSqs(){const s=[];for(let r=1;r<=8;r++)for(let f=0;f<8;f++)s.push(F[f]+r);return s}
+function shuffle(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+function knightMoves(sq){const f=sq.charCodeAt(0)-97,r=parseInt(sq[1])-1;return[[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]].map(([df,dr])=>[f+df,r+dr]).filter(([nf,nr])=>nf>=0&&nf<8&&nr>=0&&nr<8).map(([nf,nr])=>F[nf]+(nr+1))}
+function bishopMoves(sq){const f=sq.charCodeAt(0)-97,r=parseInt(sq[1])-1,m=[];for(let d=1;d<8;d++){if(f+d<8&&r+d<8)m.push(F[f+d]+(r+d+1));if(f-d>=0&&r+d<8)m.push(F[f-d]+(r+d+1));if(f+d<8&&r-d>=0)m.push(F[f+d]+(r-d+1));if(f-d>=0&&r-d>=0)m.push(F[f-d]+(r-d+1));}return m}
+function rookMoves(sq){const f=sq.charCodeAt(0)-97,r=parseInt(sq[1])-1,m=[];for(let i=0;i<8;i++){if(i!==f)m.push(F[i]+(r+1));if(i!==r)m.push(F[f]+(i+1));}return m}
+function queenMoves(sq){return[...rookMoves(sq),...bishopMoves(sq)]}
+function kingMoves(sq){const f=sq.charCodeAt(0)-97,r=parseInt(sq[1])-1;return[[-1,-1],[-1,0],[-1,1],[0,-1],[0,1],[1,-1],[1,0],[1,1]].map(([df,dr])=>[f+df,r+dr]).filter(([nf,nr])=>nf>=0&&nf<8&&nr>=0&&nr<8).map(([nf,nr])=>F[nf]+(nr+1))}
+function sameDiag(sq1,sq2){const f1=sq1.charCodeAt(0)-97,r1=parseInt(sq1[1])-1,f2=sq2.charCodeAt(0)-97,r2=parseInt(sq2[1])-1;return Math.abs(f1-f2)===Math.abs(r1-r2)}
+function sameRF(sq1,sq2){return sq1[0]===sq2[0]||sq1[1]===sq2[1]}
+function kingDist(sq1,sq2){return Math.max(Math.abs(sq1.charCodeAt(0)-sq2.charCodeAt(0)),Math.abs(parseInt(sq1[1])-parseInt(sq2[1])))}
+function knightForks(sq1,sq2){const m1=new Set(knightMoves(sq1)),m2=new Set(knightMoves(sq2));return[...m1].filter(s=>m2.has(s))}
+function canPieceAttack(piece,from,target){switch(piece){case'N':return knightMoves(from).includes(target);case'B':return bishopMoves(from).includes(target);case'R':return rookMoves(from).includes(target);case'Q':return queenMoves(from).includes(target);case'K':return kingMoves(from).includes(target);default:return false}}
+
+/* Spaced repetition: weighted random based on accuracy */
+function weightedRandSq(){
+  const sqs=allSqs();
+  const w=sqs.map(sq=>{const a=P.d.sqA[sq];if(!a||a.t===0)return 2;const r=a.c/a.t;return r<0.5?5:r<0.75?3:1});
+  const tot=w.reduce((s,x)=>s+x,0);let rr=Math.random()*tot;
+  for(let i=0;i<sqs.length;i++){rr-=w[i];if(rr<=0)return sqs[i]}
+  return sqs[Math.floor(Math.random()*sqs.length)];
+}
+function isWeakSq(sq){const a=P.d.sqA[sq];return a&&a.t>=3&&(a.c/a.t)<0.5}
+function getWeakSqs(){return allSqs().filter(isWeakSq).sort((a,b)=>{const aa=P.d.sqA[a],bb=P.d.sqA[b];return(aa.c/aa.t)-(bb.c/bb.t)}).slice(0,5)}
+
+/* ════════════════════════════════════════════
+   BOARD RENDERER
+════════════════════════════════════════════ */
+function renderBoard(id,{showCoords=true,pieces={},hi=[],sel=[],dim=[],onClick=null,clickable=true}={}){
+  const c=$(id);if(!c)return;
+  const board=document.createElement('div');board.className='board';
+  for(let rank=8;rank>=1;rank--){
+    for(let fi=0;fi<8;fi++){
+      const file=F[fi],sq=file+rank,isL=(fi+rank)%2!==0;
+      const cell=document.createElement('div');
+      cell.className='sq '+(isL?'lt':'dk');cell.dataset.sq=sq;
+      if(hi.includes(sq))cell.classList.add('hi');
+      if(sel.includes(sq))cell.classList.add('sel');
+      if(dim.includes(sq))cell.classList.add('dim2');
+      if(pieces[sq])cell.textContent=pieces[sq];
+      if(clickable&&onClick)cell.addEventListener('click',()=>onClick(sq,cell));
+      if(showCoords){if(fi===0){const l=document.createElement('span');l.className='rlbl';l.textContent=rank;cell.appendChild(l);}if(rank===1){const l=document.createElement('span');l.className='flbl';l.textContent=file;cell.appendChild(l);}}
+      board.appendChild(cell);
+    }
+  }
+  const w=document.createElement('div');w.className='bwrap';w.appendChild(board);c.innerHTML='';c.appendChild(w);
+}
+function getCell(sq){return document.querySelector(`.board .sq[data-sq="${sq}"]`)}
+
+/* ════════════════════════════════════════════
+   PROGRESS SYSTEM
+════════════════════════════════════════════ */
+const LEVELS=[{n:'Beginner',xp:0},{n:'Apprentice',xp:200},{n:'Tactician',xp:600},{n:'Visualizer',xp:1400},{n:'Blind Knight',xp:3000},{n:'Shadow Master',xp:6000},{n:'Grand Vizier',xp:12000}];
+const ACHIEVEMENTS=[
+  {id:'first_drill',  icon:'🌟',name:'First Steps',   desc:'Complete your first drill',    fn:d=>d.drillsDone>=1},
+  {id:'scholar3',     icon:'📚',name:'Scholar',       desc:'Complete 3 lessons',           fn:d=>d.lessonsCompleted.length>=3},
+  {id:'all_lessons',  icon:'🎓',name:'Graduate',      desc:'Complete all lessons',         fn:d=>d.lessonsCompleted.length>=LESSONS.length},
+  {id:'streak7',      icon:'🔥',name:'Devoted',       desc:'7-day training streak',        fn:d=>d.streak>=7},
+  {id:'speed20',      icon:'⚡',name:'Speed Demon',   desc:'Score 20+ on Speed Blitz',    fn:d=>(d.gameHigh['speed-coords']||0)>=20},
+  {id:'blind_perf',   icon:'🧠',name:'Mind Master',   desc:'Perfect score on Blind Moves', fn:d=>(d.gameHigh['blind-moves']||0)>=10},
+  {id:'acc90',        icon:'🎯',name:'Eagle Eye',     desc:'90%+ overall accuracy (50+)',  fn:d=>d.totalAnswered>=50&&d.totalCorrect/d.totalAnswered>=0.9},
+  {id:'xp1000',       icon:'💎',name:'Gem',           desc:'Earn 1000 XP',                fn:d=>d.xp>=1000},
+  {id:'xp5000',       icon:'♛',name:'Chess Sage',    desc:'Earn 5000 XP',                fn:d=>d.xp>=5000},
+  {id:'vc_perf',      icon:'👁',name:'Blind Vision',  desc:'Perfect Visualization Chain', fn:d=>(d.gameHigh['viz-chain']||0)>=6},
+  {id:'fork_master',  icon:'⚔',name:'Fork Master',   desc:'100 fork drills done',        fn:d=>(d.drillCount['fork-finder']||0)>=100},
+  {id:'daily7',       icon:'📅',name:'Daily Player',  desc:'Complete 7 daily challenges', fn:d=>(d.dailyDone||0)>=7},
+];
+const P={
+  d:{xp:0,streak:0,lastDate:null,drillsDone:0,totalCorrect:0,totalAnswered:0,
+     lessonsCompleted:[],drillHigh:{},gameHigh:{},sqA:{},drillCount:{},
+     achievements:[],dailyDone:0,dailyDates:[],catAcc:{basic:0,advanced:0,visual:0,bc:0,ba:0,bv:0}},
+  load(){try{const s=localStorage.getItem('bchess3');if(s)this.d={...this.d,...JSON.parse(s)};}catch(e){}this.checkStreak()},
+  save(){localStorage.setItem('bchess3',JSON.stringify(this.d))},
+  checkStreak(){const today=new Date().toDateString(),yest=new Date(Date.now()-86400000).toDateString();if(this.d.lastDate===today)return;if(this.d.lastDate!==yest)this.d.streak=0;this.d.lastDate=today;this.save()},
+  touchStreak(){const today=new Date().toDateString(),yest=new Date(Date.now()-86400000).toDateString();if(this.d.lastDate!==today){this.d.streak=(this.d.lastDate===yest)?this.d.streak+1:1;this.d.lastDate=today;this.save();}},
+  addXP(n){this.d.xp+=n;this.save();this.ui();xpToast('+'+n+' XP')},
+  recordAnswer(ok,sq=null,cat=null){
+    this.d.totalAnswered++;if(ok)this.d.totalCorrect++;
+    if(sq){if(!this.d.sqA[sq])this.d.sqA[sq]={c:0,t:0};this.d.sqA[sq].t++;if(ok)this.d.sqA[sq].c++;}
+    if(cat){const k='b'+cat;if(!this.d.catAcc[k])this.d.catAcc[k]={c:0,t:0};this.d.catAcc[k].t++;if(ok)this.d.catAcc[k].c++;}
+    this.save();this.checkAchievements();
+  },
+  checkAchievements(){
+    ACHIEVEMENTS.forEach(a=>{
+      if(!this.d.achievements.includes(a.id)&&a.fn(this.d)){
+        this.d.achievements.push(a.id);this.save();
+        achToast(a.icon+' '+a.name+' unlocked!');
+      }
+    });
+  },
+  lvInfo(){
+    let lv=0;for(let i=LEVELS.length-1;i>=0;i--)if(this.d.xp>=LEVELS[i].xp){lv=i;break;}
+    const cur=LEVELS[lv],nxt=LEVELS[lv+1]||null;
+    const pct=nxt?Math.min(100,(this.d.xp-cur.xp)/(nxt.xp-cur.xp)*100):100;
+    const xpStr=nxt?`${this.d.xp} / ${nxt.xp} XP`:`${this.d.xp} XP ★`;
+    return{name:cur.n,pct,xpStr};
+  },
+  ui(){
+    const li=this.lvInfo();
+    const acc=this.d.totalAnswered>0?Math.round(this.d.totalCorrect/this.d.totalAnswered*100)+'%':'—';
+    $('hxp').textContent='⚡ '+this.d.xp;
+    $('hstr').textContent='🔥 '+this.d.streak;
+    if($('lvn'))$('lvn').textContent=li.name;
+    if($('xpn'))$('xpn').textContent=li.xpStr;
+    if($('xpf'))$('xpf').style.width=li.pct+'%';
+    if($('ststr'))$('ststr').textContent=this.d.streak;
+    if($('stdr'))$('stdr').textContent=this.d.drillsDone;
+    if($('stac'))$('stac').textContent=acc;
+    if($('stxp'))$('stxp').textContent=this.d.xp;
+  }
+};
+function xpToast(msg){const old=document.querySelector('.toast.xp-t');if(old)old.remove();const t=document.createElement('div');t.className='toast xp-t';t.textContent=msg;$('app').appendChild(t);setTimeout(()=>t.remove(),2300)}
+function achToast(msg){setTimeout(()=>{const t=document.createElement('div');t.className='toast ach-toast';t.textContent=msg;$('app').appendChild(t);setTimeout(()=>t.remove(),3000)},400)}
+
+/* ════════════════════════════════════════════
+   DAILY CHALLENGE
+════════════════════════════════════════════ */
+const DC_LIST=[
+  {id:'dc0',title:'Color Blitz',desc:'Get 10 square colors correct',type:'square-color',target:10},
+  {id:'dc1',title:'Navigator',desc:'Find 8 squares without mistakes',type:'coordinate-tap',target:8},
+  {id:'dc2',title:'Knight Scout',desc:'Perfect 3 knight vision drills',type:'knight-vision',target:3},
+  {id:'dc3',title:'Diagonal Sight',desc:'Get 8 same-diagonal answers right',type:'same-diagonal',target:8},
+  {id:'dc4',title:'Fork Hunter',desc:'Solve 6 fork finder puzzles',type:'fork-finder',target:6},
+  {id:'dc5',title:'Speed Run',desc:'Score 15+ on Speed Blitz',type:'speed-game',target:15},
+  {id:'dc6',title:'Blind Calculator',desc:'Get 8/10 on Blind Moves',type:'blind-game',target:8},
+];
+const Daily={
+  get(){const day=Math.floor(Date.now()/86400000);return DC_LIST[day%DC_LIST.length]},
+  isDone(){const today=new Date().toDateString();return(P.d.dailyDates||[]).includes(today)},
+  complete(){
+    const today=new Date().toDateString();
+    if(!this.isDone()){
+      if(!P.d.dailyDates)P.d.dailyDates=[];
+      P.d.dailyDates.push(today);P.d.dailyDone=(P.d.dailyDone||0)+1;
+      P.addXP(50);P.save();P.checkAchievements();
+      $('dc-status').textContent='✅ Done';$('hdc').textContent='📅 ✓';
+    }
+  },
+  start(){
+    const c=this.get();
+    if(c.type==='speed-game'){Games.start('speed-coords');return}
+    if(c.type==='blind-game'){Games.start('blind-moves');return}
+    Drills.start(c.type,{dailyMode:true,dailyTarget:c.target});
+  },
+  renderHome(){
+    const c=this.get(),done=this.isDone();
+    if($('dc-title'))$('dc-title').textContent=c.title;
+    if($('dc-desc'))$('dc-desc').textContent=c.desc;
+    if($('dc-status'))$('dc-status').textContent=done?'✅ Done':'';
+    if($('hdc'))$('hdc').textContent=done?'📅 ✓':'📅';
+  }
+};
+
+/* ════════════════════════════════════════════
+   LESSONS DATA (9 lessons)
+════════════════════════════════════════════ */
+const LESSONS=[
+ {id:'coords',emoji:'🗺️',title:'Coordinate Grid',desc:'Name every square instantly',xp:60,
+  slides:[
+   {t:'How the Board is Named',h:`<p>Every square = <strong>file (a–h)</strong> + <strong>rank (1–8)</strong>. Always file first, then rank.</p><div class="hlb">Bottom-left = <strong style="color:var(--gold)">a1</strong> &nbsp; Top-right = <strong style="color:var(--gold)">h8</strong><br>Files: a=1st col ... h=8th col<br>Ranks: 1=bottom ... 8=top</div>`},
+   {t:'Anchor Squares',h:`<p>Memorize these first — they orient your entire mental board:</p><div class="hlb">Corners: <strong style="color:var(--gold)">a1 h1 a8 h8</strong><br>Center: <strong style="color:var(--gold)">d4 e4 d5 e5</strong><br>Kings: <strong style="color:var(--gold)">e1 e8</strong> &nbsp; Queens: <strong style="color:var(--gold)">d1 d8</strong></div>`,bfn:()=>renderBoard('lb',{hi:['a1','h1','a8','h8','d4','e4','d5','e5'],clickable:false})},
+   {t:'The Starting Position',h:`<p>Know where every piece starts — blind chess begins here.</p><div class="hlb">Ra1 Nb1 Bc1 Qd1 Ke1 Bf1 Ng1 Rh1<br>Pawns: a2–h2 | Mirror on ranks 7–8 for Black</div>`,bfn:()=>renderBoard('lb',{pieces:{a1:'♖',b1:'♘',c1:'♗',d1:'♕',e1:'♔',f1:'♗',g1:'♘',h1:'♖',a2:'♙',b2:'♙',c2:'♙',d2:'♙',e2:'♙',f2:'♙',g2:'♙',h2:'♙',a7:'♟',b7:'♟',c7:'♟',d7:'♟',e7:'♟',f7:'♟',g7:'♟',h7:'♟',a8:'♜',b8:'♞',c8:'♝',d8:'♛',e8:'♚',f8:'♝',g8:'♞',h8:'♜'},clickable:false})}
+  ],
+  quiz:[{q:'Which square: 4th file, 5th rank?',opts:['d5','e4','d4','e5'],ans:0},{q:'King starts on which square (White)?',opts:['d1','e1','f1','g1'],ans:1},{q:'Top-right corner?',opts:['h1','a8','h8','a1'],ans:2},{q:'File "e" is which column?',opts:['4th','5th','6th','3rd'],ans:1}]},
+ {id:'colors',emoji:'🎨',title:'Light & Dark Squares',desc:'Know any color in under 1 second',xp:80,
+  slides:[
+   {t:'The Parity Formula',h:`<p>Assign: a=1 b=2 c=3 d=4 e=5 f=6 g=7 h=8</p><div class="fbox"><div class="f">File# + Rank# = Even → Dark | Odd → Light</div><div class="fn">Same parity digits = Dark | Different = Light</div></div>`},
+   {t:'Instant Mental Shortcut',h:`<p>No math needed — just check if both are odd, both even, or mixed:</p><div class="hlb">e4: 5+4=9 (diff) → <strong style="color:var(--cream)">LIGHT</strong><br>d4: 4+4=8 (same) → <strong style="color:var(--brn2)">DARK</strong><br>b6: 2+6=8 (same) → <strong style="color:var(--brn2)">DARK</strong><br>c5: 3+5=8 (same) → <strong style="color:var(--brn2)">DARK</strong></div>`},
+   {t:'Bishops Never Switch',h:`<p>A bishop stays on its starting color the entire game — a perfect blind anchor.</p><div class="hlb">♗ c1 → c=3, 1+3=4 (even) → <strong>Dark-square bishop</strong><br>♗ f1 → f=6, 6+1=7 (odd) → <strong>Light-square bishop</strong></div>`,bfn:()=>renderBoard('lb',{pieces:{c1:'♗',f1:'♗'},clickable:false})}
+  ],
+  quiz:[{q:'Color of f6?',opts:['Light','Dark'],ans:0},{q:'Color of d4?',opts:['Light','Dark'],ans:1},{q:'c1 bishop is on...',opts:['Light squares','Dark squares'],ans:1},{q:'Color of h7?',opts:['Light','Dark'],ans:0}]},
+ {id:'knight',emoji:'♞',title:'Knight Vision',desc:"Visualize the knight's full reach",xp:100,
+  slides:[
+   {t:'The L-Shape',h:`<p>The knight moves in an <strong>L</strong>: 2 squares one direction, 1 perpendicular. <em>Always changes square color.</em></p><div class="hlb">From e4: d2 f2 c3 g3 c5 g5 d6 f6 (8 moves)</div>`,bfn:()=>renderBoard('lb',{pieces:{e4:'♘'},hi:['d2','f2','c3','g3','c5','g5','d6','f6'],clickable:false})},
+   {t:'Edge Penalty',h:`<p>Corners and edges drastically cut mobility:</p><div class="hlb">Center e4: <strong>8 moves</strong><br>Edge a4: <strong>4 moves</strong><br>Corner a1: <strong>only 2 moves!</strong></div><p style="margin-top:8px">"A knight on the rim is dim" — always track where your knights are!</p>`,bfn:()=>renderBoard('lb',{pieces:{a1:'♘'},hi:['b3','c2'],clickable:false})},
+   {t:'Knight Forks',h:`<p>A fork attacks two pieces simultaneously. The knight is the king of forks because it ignores blockers.</p><div class="hlb">Knight on e5 forks: c4, g4, c6, g6, d3, f3, d7, f7<br>If White's king is on g6 and rook on c6 — knight on e5 forks both!</div>`,bfn:()=>renderBoard('lb',{pieces:{e5:'♘',g6:'♚',c6:'♜'},hi:['c6','g6'],clickable:false})}
+  ],
+  quiz:[{q:'From e4, can a knight reach f6?',opts:['Yes','No'],ans:0},{q:'Corner knight — how many moves?',opts:['2','4','6','8'],ans:0},{q:'Does a knight always change color?',opts:['Yes — always','No — sometimes stays'],ans:0},{q:'Knight on f3 attacks e5. True?',opts:['Yes','No'],ans:0}]},
+ {id:'bishop',emoji:'♝',title:'Bishop Mastery',desc:'Map diagonals across the board',xp:90,
+  slides:[
+   {t:'Four Diagonal Rays',h:`<p>A bishop controls up to 4 diagonal rays. From a central square it can reach 13 squares!</p><div class="hlb">From d4: diagonal NE (e5,f6,g7,h8), NW (c5,b6,a7), SE (e3,f2,g1), SW (c3,b2,a1)</div>`,bfn:()=>renderBoard('lb',{pieces:{d4:'♗'},hi:bishopMoves('d4'),clickable:false})},
+   {t:'Diagonal Connectivity',h:`<p>Two squares are on the same diagonal if the <strong>absolute difference</strong> of their file and rank numbers are equal.</p><div class="fbox"><div class="f">|file1 - file2| = |rank1 - rank2|</div><div class="fn">e.g., c2 and f5: |3-6|=3, |2-5|=3 → same diagonal ✓</div></div>`},
+   {t:'Good vs Bad Bishop',h:`<p>A bishop blocked by its own pawns is "bad" — in blind chess, always track pawn color vs bishop color.</p><div class="hlb">If White pawns are on d4, e3, f4 (all dark squares) and the dark-square bishop is trapped — the light-square bishop becomes dominant!</div>`}
+  ],
+  quiz:[{q:'Are c2 and f5 on the same diagonal?',opts:['Yes','No'],ans:0},{q:'Bishop on a1 can reach h8. True?',opts:['Yes','No'],ans:0},{q:'A bishop from d4 can reach g7?',opts:['Yes','No'],ans:0},{q:'Maximum squares a bishop can reach from center?',opts:['7','9','13','11'],ans:2}]},
+ {id:'rook',emoji:'♜',title:'Rook Domination',desc:'Control files, ranks, and open lines',xp:90,
+  slides:[
+   {t:'The Rook Covers 14 Squares',h:`<p>A rook on any square always covers exactly <strong>14 squares</strong> (7 along its rank + 7 along its file, minus itself).</p><div class="hlb">From d4: all of rank 4 + all of file d = 14 squares<br>Unlike bishops, rooks never change their coverage count!</div>`,bfn:()=>renderBoard('lb',{pieces:{d4:'♖'},hi:rookMoves('d4'),clickable:false})},
+   {t:'Rooks on Open Files',h:`<p>In blind chess, always know: is my rook's file open (no pawns) or closed?</p><div class="hlb">Open file: rook controls the full file (7 squares)<br>Rooks on the 7th rank are devastating — they attack all enemy pawns<br>Doubled rooks on same file = maximum control</div>`},
+   {t:'Same Rank and File',h:`<p>Two squares share a rank or file if their letter OR number matches.</p><div class="fbox"><div class="f">d4 and d7 → same file 'd' ✓</div><div class="fn">d4 and h4 → same rank '4' ✓ | d4 and f6 → neither ✗</div></div>`}
+  ],
+  quiz:[{q:'How many squares does a rook always cover?',opts:['7','10','14','12'],ans:2},{q:'Do d4 and d8 share a file?',opts:['Yes','No'],ans:0},{q:'Do b3 and f3 share a rank?',opts:['Yes','No'],ans:0},{q:'A rook on h1 can reach a1?',opts:['Yes','No'],ans:0}]},
+ {id:'tactics',emoji:'⚔',title:'Tactical Patterns',desc:'Forks, pins, skewers — blind',xp:130,
+  slides:[
+   {t:'The Fork',h:`<p>One piece attacks two or more pieces simultaneously. Knight forks are most common but any piece can fork.</p><div class="hlb">Knight fork: attacks two pieces at once, both must move<br>Pawn fork: e.g., pawn on d5 attacks c6 and e6<br>In blind chess: <em>always visualize if your knight can fork</em></div>`,bfn:()=>renderBoard('lb',{pieces:{e5:'♘',c4:'♛',g4:'♚'},hi:['c4','g4'],clickable:false})},
+   {t:'The Pin',h:`<p>A pin attacks a piece that is shielding a more valuable piece behind it.</p><div class="hlb">Absolute pin: shields the King — pinned piece CANNOT move<br>Relative pin: shields another valuable piece — moving is legal but costly<br>Bishop and Rook create pins — memorize common pin patterns!</div>`},
+   {t:'The Skewer & Discovered Attack',h:`<p>A skewer is a "reverse pin" — forces a valuable piece to move, exposing a less valuable one behind it.</p><div class="hlb">Discovered Attack: moving one piece reveals an attack by another<br>Discovered Check: the revealed attack is on the enemy King<br>These are the hardest patterns to visualize blindly — but the most powerful!</div>`}
+  ],
+  quiz:[{q:'A fork attacks how many pieces?',opts:['1','2 or more','Exactly 2','Only pawns'],ans:1},{q:'An absolute pin means the pinned piece...',opts:['Can move freely','Cannot legally move','Is immediately captured','Has no value'],ans:1},{q:'A skewer forces what?',opts:['A piece to be captured','A valuable piece to move','A pawn promotion','A fork'],ans:1},{q:'Discovered check is when...',opts:['You check directly','Moving reveals a check','A piece is forked','A pin is broken'],ans:1}]},
+ {id:'pawns',emoji:'♟',title:'Pawn Structure',desc:'Track pawn chains and weak squares',xp:100,
+  slides:[
+   {t:'Pawn Chains',h:`<p>A pawn chain is a diagonal line of pawns supporting each other. The <em>base</em> is the most critical — attack it!</p><div class="hlb">White pawns on c3, d4, e5 form a chain<br>Base = c3 (weakest), tip = e5<br>In blind chess: always track which pawns support which!</div>`,bfn:()=>renderBoard('lb',{pieces:{c3:'♙',d4:'♙',e5:'♙'},hi:['c3'],clickable:false})},
+   {t:'Isolated, Doubled, Passed',h:`<p>Three pawn weakness types every blind player must track mentally:</p><div class="hlb">🔹 <strong>Isolated</strong>: no friendly pawn on adjacent files → easy target<br>🔹 <strong>Doubled</strong>: two pawns on same file → one blocks the other<br>🔹 <strong>Passed</strong>: no enemy pawn blocking its path to promotion → strength!</div>`},
+   {t:'Weak Square Complexes',h:`<p>When you advance a pawn, the square it left behind can never be protected by a pawn again.</p><div class="hlb">If White plays f3: e3, g3 become permanently weak for White<br>If both e and g pawns move: f4 becomes an outpost for Black's knight<br>In blind chess: track which squares are "holes" in your pawn structure!</div>`}
+  ],
+  quiz:[{q:'The base of a pawn chain is...',opts:['The most advanced pawn','The most backward pawn','The most forward pawn','Any pawn'],ans:1},{q:'An isolated pawn has...',opts:['No enemy pawns near it','No friendly pawns on adjacent files','A pawn directly behind it','Extra protection'],ans:1},{q:'A passed pawn means...',opts:['It passed the center','No enemy pawn blocks its promotion path','It moved more than 2 squares','It\'s protected'],ans:1},{q:'Advancing the f-pawn permanently weakens which square?',opts:['e4','g4','e3','All above'],ans:3}]},
+ {id:'mindeye',emoji:'🧠',title:"The Mind's Eye",desc:'Build and maintain the mental board',xp:120,
+  slides:[
+   {t:'The Anchor Method',h:`<p>Build your mental board layer by layer — don't try to hold all 32 pieces at once!</p><div class="hlb">Layer 1: Lock the 4 corners<br>Layer 2: Lock the center (d4,e4,d5,e5)<br>Layer 3: Place both kings<br>Layer 4: Place remaining pieces<br>Layer 5: Add pawns</div>`},
+   {t:'The Movie Screen',h:`<p>Project the board onto a blank mental "screen" — erase and redraw with each move.</p><div class="hlb">Always keep a1 at bottom-left, never rotate<br>When a piece moves: erase → redraw<br>After captures: remove the captured piece<br>Verbalize each move as you play it</div>`},
+   {t:'Chunking Positions',h:`<p>Instead of remembering 16 pieces individually, chunk them into patterns:</p><div class="hlb">"Castled kingside" = King on g1, Rook on f1<br>"Fianchettoed bishop" = Bishop on g2, pawns on f3+h3<br>"Minority attack" = b4+c4 vs c5+d5 pawns<br>Pattern chunks reduce mental load by 70%!</div>`}
+  ],
+  quiz:[{q:'First anchor layer in the mind\'s eye?',opts:['The pawns','The 4 corners','The kings','The center'],ans:1},{q:'When projecting, a1 should be where?',opts:['Top-left','Top-right','Bottom-left','Bottom-right'],ans:2},{q:'Chunking means...',opts:['Breaking into small pieces','Grouping patterns to reduce memory load','Only remembering important pieces','Writing moves down'],ans:1},{q:"The 'movie screen' method is best for...",opts:['Endgames only','Dynamically updating position after each move','Opening theory','Just remembering pawn structure'],ans:1}]},
+ {id:'calc',emoji:'⚡',title:'Blind Calculation',desc:'Calculate 5 moves deep in your head',xp:150,
+  slides:[
+   {t:'The 3-Question Habit',h:`<p>Before every move, ask these in order:</p><div class="hlb">1. <strong>What are all my candidate moves?</strong> (list 2–3)<br>2. <strong>What did their move threaten?</strong><br>3. <strong>After I move, what is undefended?</strong></div><p style="margin-top:8px">Asking #3 catches blunders before they happen.</p>`},
+   {t:'Candidate Trees',h:`<p>Calculate like a tree, not a line. At each branch, consider opponent's best response.</p><div class="fbox"><div class="f">Move A → their reply A1 → your A1a</div><div class="fn">Move B → their reply B1 → your B1a<br>Choose the branch where YOU are better off</div></div>`},
+   {t:'Building Calculation Depth',h:`<p>This is trainable — it grows with daily practice:</p><div class="hlb">Depth 1–2: Typical 800-rated player<br>Depth 3–4: 1000–1400 player<br>Depth 5–6: 1600–2000 player<br>Depth 7+: Full blindfold games (2000+)<br><br>The Visualization Chain game trains depth directly!</div>`}
+  ],
+  quiz:[{q:'First question to ask before moving?',opts:['What are my candidate moves?','What piece should I move?','What did they threaten?','What\'s my plan?'],ans:0},{q:'Rook on h1 goes to h7. Same file?',opts:['Yes','No'],ans:0},{q:'Calculation depth 5 corresponds to which level?',opts:['800 rated','1000 rated','1600–2000 rated','Beginner'],ans:2},{q:'Knight on f3 moves to e5 then to d7. Where is it?',opts:['e5','d7','f6','c6'],ans:1}]}
+];
+
+/* ════════════════════════════════════════════
+   DRILL CONFIGS
+════════════════════════════════════════════ */
+const DRILL_CONFIGS={
+ basic:[
+  {id:'square-color',  emoji:'⬛',title:'Square Color',    desc:'Light or dark? 1-second answers. Uses your weak squares more.',diff:'b',xpPer:5,cat:'basic'},
+  {id:'coordinate-tap',emoji:'📍',title:'Find the Square', desc:'Tap the named coordinate on the board.',                        diff:'b',xpPer:8,cat:'basic'},
+  {id:'name-square',   emoji:'🔤',title:'Name the Square', desc:'A square glows — what is its coordinate?',                     diff:'b',xpPer:6,cat:'basic'},
+  {id:'same-color',    emoji:'🎨',title:'Same Color?',     desc:'Are two squares the same color? Mental parity check.',         diff:'b',xpPer:5,cat:'basic'},
+ ],
+ advanced:[
+  {id:'knight-vision', emoji:'♞',title:'Knight Vision',   desc:'Tap ALL squares the knight can jump to.',              diff:'i',xpPer:12,cat:'advanced'},
+  {id:'bishop-lines',  emoji:'♝',title:'Bishop Lines',    desc:'Find all diagonal squares for a placed bishop.',       diff:'i',xpPer:10,cat:'advanced'},
+  {id:'same-diagonal', emoji:'↗',title:'Same Diagonal?',  desc:'Are two squares on the same diagonal line?',           diff:'i',xpPer:7,cat:'advanced'},
+  {id:'fork-finder',   emoji:'⚔',title:'Fork Finder',     desc:'Can a knight fork both squares? Spot the fork square.',diff:'a',xpPer:15,cat:'advanced'},
+  {id:'rank-file',     emoji:'⊞',title:'Same Rank/File?', desc:'Do two squares share a rank or file?',                 diff:'b',xpPer:6,cat:'advanced'},
+ ],
+ visual:[
+  {id:'piece-attacks', emoji:'🎯',title:'Piece Attacks',  desc:'Can this piece attack that square in one move?',           diff:'i',xpPer:10,cat:'visual'},
+  {id:'king-distance', emoji:'👑',title:'King Distance',  desc:'How many king moves between two squares?',                  diff:'i',xpPer:8,cat:'visual'},
+  {id:'move-sequence', emoji:'🔀',title:'Move Sequence',  desc:'Follow 2 moves described in text — track where the piece lands.',diff:'a',xpPer:18,cat:'visual'},
+ ]
+};
+const ALL_DRILLS=[...DRILL_CONFIGS.basic,...DRILL_CONFIGS.advanced,...DRILL_CONFIGS.visual];
+
+/* ════════════════════════════════════════════
+   LESSONS ENGINE
+════════════════════════════════════════════ */
+const Lessons={
+  cur:null,slide:0,qi:0,qs:0,
+  start(id){this.cur=LESSONS.find(l=>l.id===id);this.slide=0;this.qi=0;this.qs=0;App.nav('active');this.renderSlide()},
+  renderSlide(){
+    const L=this.cur,S=L.slides[this.slide];
+    const dots=L.slides.map((_,i)=>`<div class="sdot ${i<this.slide?'done':i===this.slide?'active':''}"></div>`).join('');
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="App.back()"><button class="bbtn">←</button><span class="blbl">${L.emoji} ${L.title}</span></div>
+      <div class="sdots">${dots}</div>
+      <div class="cb"><h3>${S.t}</h3>${S.h}</div>
+      ${S.bfn?'<div id="lb"></div>':''}
+      <button class="btn btg" onclick="Lessons.next()">${this.slide<L.slides.length-1?'Next →':'Take the Quiz →'}</button>`;
+    if(S.bfn)setTimeout(S.bfn,40);
+  },
+  next(){if(this.slide<this.cur.slides.length-1){this.slide++;this.renderSlide();}else{this.qi=0;this.qs=0;this.renderQ();}},
+  renderQ(){
+    const L=this.cur,Q=L.quiz[this.qi];
+    const opts=Q.opts.map((o,i)=>`<button class="ab" id="qb${i}" onclick="Lessons.ans(${i})">${o}</button>`).join('');
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="App.back()"><button class="bbtn">←</button><span class="blbl">Quiz — ${L.emoji} ${L.title}</span></div>
+      <div class="dhdr"><span class="dprog">Q${this.qi+1}/${L.quiz.length}</span><div class="spill"><span class="sc2">${this.qs}✓</span></div></div>
+      <div class="qcard"><div class="qlbl">Question</div><div style="font-size:0.94rem;font-weight:700;line-height:1.45;margin-top:4px">${Q.q}</div></div>
+      <div class="agrid">${opts}</div>
+      <div class="fb" id="fb"></div>`;
+  },
+  ans(i){
+    const Q=this.cur.quiz[this.qi],ok=i===Q.ans;
+    document.querySelectorAll('.ab').forEach((b,j)=>{b.onclick=null;if(j===Q.ans)b.classList.add('cor');else if(j===i&&!ok)b.classList.add('wrg')});
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?'✓ Correct!':'✗ Correct answer is highlighted above.';
+    if(ok)this.qs++;P.recordAnswer(ok);
+    setTimeout(()=>{this.qi++;this.qi<this.cur.quiz.length?this.renderQ():this.result()},1150);
+  },
+  result(){
+    const L=this.cur,total=L.quiz.length,pct=Math.round(this.qs/total*100),pass=pct>=75;
+    let xp=pass&&!P.d.lessonsCompleted.includes(L.id)?L.xp:Math.round(L.xp*this.qs/total*0.3);
+    if(pass&&!P.d.lessonsCompleted.includes(L.id)){P.d.lessonsCompleted.push(L.id);P.save();}
+    P.addXP(xp);P.touchStreak();App.buildHome();App.buildLessons();P.checkAchievements();
+    $('scr-active').innerHTML=`<div class="ccard">
+      <div class="bem">${pass?'🏆':'📖'}</div>
+      <div class="bnum">${this.qs}/${total}</div>
+      <h2>${pass?'Lesson Complete!':'Keep Practicing!'}</h2>
+      <p class="sub">${pass?`+${xp} XP earned`:'Need 75% to pass'}</p>
+      <button class="btn btg" style="margin-top:20px" onclick="App.nav('lessons')">Back to Lessons</button>
+      ${!pass?`<button class="btn btgh" onclick="Lessons.start('${L.id}')">Retry</button>`:''}
+    </div>`;
+  }
+};
+
+/* ════════════════════════════════════════════
+   DRILLS ENGINE
+════════════════════════════════════════════ */
+const Drills={
+  cfg:null,score:0,wrong:0,done:0,total:10,st:{},dailyMode:false,dailyTarget:0,dailyProgress:0,
+  start(id,opts={}){
+    this.cfg=ALL_DRILLS.find(d=>d.id===id);
+    this.score=0;this.wrong=0;this.done=0;this.dailyMode=opts.dailyMode||false;this.dailyTarget=opts.dailyTarget||0;this.dailyProgress=0;
+    this.total=id==='knight-vision'||id==='bishop-lines'?8:id==='move-sequence'?6:10;
+    this.st={};
+    if(!P.d.drillCount)P.d.drillCount={};
+    P.d.drillCount[id]=(P.d.drillCount[id]||0)+1;P.save();
+    App.nav('active');this['_'+id.replace(/-/g,'_')]();
+  },
+  tab(n){
+    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+    const tabs=['basic','advanced','visual'];App.buildDrills(tabs[n]);
+  },
+  hdr(){
+    const dc=this.dailyMode?`<div style="font-size:0.7rem;color:var(--pur);margin-bottom:8px">📅 Daily Challenge: ${this.dailyProgress}/${this.dailyTarget}</div>`:'';
+    const sr=isWeakSq&&this.cfg.cat==='basic'?'<div class="sr-badge show">🔁 Spaced Repetition Active — weak squares prioritized</div>':'';
+    return`${dc}${sr}<div class="brow" onclick="App.back()"><button class="bbtn">←</button><span class="blbl">${this.cfg.emoji} ${this.cfg.title}</span></div>
+    <div class="dhdr"><span class="dprog">${this.done}/${this.total}</span>
+    <div class="spill"><span class="sc2">${this.score}✓</span><span style="color:var(--mut)"> | </span><span class="sw2">${this.wrong}✗</span></div></div>`;
+  },
+  record(ok,sq=null){
+    this.done++;if(ok){this.score++;P.addXP(this.cfg.xpPer);this.dailyProgress++;}else this.wrong++;
+    P.recordAnswer(ok,sq,this.cfg.cat);P.touchStreak();
+    if(this.dailyMode&&this.dailyProgress>=this.dailyTarget)Daily.complete();
+  },
+  next(fn){if(this.done>=this.total)this.showEnd();else this[fn]();},
+  showEnd(){
+    const best=P.d.drillHigh[this.cfg.id]||0;
+    if(this.score>best){P.d.drillHigh[this.cfg.id]=this.score;P.d.drillsDone++;P.save();}
+    P.ui();App.buildDrills();App.buildHome();P.checkAchievements();
+    const acc=Math.round(this.score/this.done*100);
+    $('scr-active').innerHTML=`<div class="ccard">
+      <div class="bem">${acc>=80?'🏆':acc>=60?'👍':'💪'}</div>
+      <div class="bnum">${this.score}/${this.done}</div>
+      <h2>${acc>=80?'Outstanding!':acc>=60?'Good Work!':'Keep Drilling!'}</h2>
+      <p class="sub">${acc}% accuracy · ${this.score*this.cfg.xpPer} XP earned</p>
+      ${getWeakSqs().length>0?`<p class="sub" style="margin-top:4px;color:var(--pur)">Weak squares: ${getWeakSqs().slice(0,3).join(', ')}</p>`:''}
+      <button class="btn btg" style="margin-top:20px" onclick="Drills.start('${this.cfg.id}')">Play Again</button>
+      <button class="btn btgh" onclick="App.nav('drills')">All Drills</button>
+    </div>`;
+  },
+
+  /* ─ Square Color (Spaced Repetition) ─ */
+  _square_color(){
+    const sq=weightedRandSq();this.st={sq,ans:sqColor(sq)};
+    const weak=isWeakSq(sq);
+    $('scr-active').innerHTML=`${this.hdr()}
+      ${weak?'<div class="sr-badge show">🔁 Weak square — you\'ve struggled here before</div>':''}
+      <div class="qcard"><div class="qlbl">What color is this square?</div><div class="qmain">${sq}</div><div class="qsub">Tip: Same parity = Dark | Different = Light</div></div>
+      <div class="agrid"><button class="ab" id="ab0" onclick="Drills._sc_ans('light')">☀️ Light</button><button class="ab" id="ab1" onclick="Drills._sc_ans('dark')">🌑 Dark</button></div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _sc_ans(ans){
+    const ok=ans===this.st.ans;
+    document.querySelectorAll('.ab').forEach(b=>b.onclick=null);
+    $('ab0').classList.add(this.st.ans==='light'?'cor':'');$('ab1').classList.add(this.st.ans==='dark'?'cor':'');
+    if(!ok)(ans==='light'?$('ab0'):$('ab1')).classList.add('wrg');
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    const sq=this.st.sq;fb.textContent=ok?`✓ ${sq} is ${this.st.ans}!`:`✗ ${sq} is ${this.st.ans}. (${sq.charCodeAt(0)-96}+${sq[1]}=${sq.charCodeAt(0)-96+parseInt(sq[1])})`;
+    this.record(ok,this.st.sq);setTimeout(()=>this.next('_square_color'),1150);
+  },
+
+  /* ─ Coordinate Tap ─ */
+  _coordinate_tap(){
+    const sq=randSq();this.st={target:sq,done:false};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="ibanner">Tap square <strong style="color:var(--gold);font-size:1.1em">${sq}</strong></div>
+      <div id="lb"></div><div class="fb" id="fb"></div>`;
+    setTimeout(()=>renderBoard('lb',{onClick:(s,cell)=>Drills._ct_tap(s,cell)}),30);
+  },
+  _ct_tap(sq,cell){
+    if(this.st.done)return;this.st.done=true;
+    const ok=sq===this.st.target;
+    cell.classList.add(ok?'ok2':'err2');
+    if(!ok){const c=getCell(this.st.target);if(c)c.classList.add('ok2');}
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ That's ${sq}!`:`✗ That was ${sq}. Target was ${this.st.target}.`;
+    this.record(ok,sq);setTimeout(()=>this.next('_coordinate_tap'),1150);
+  },
+
+  /* ─ Name the Square ─ */
+  _name_square(){
+    const target=randSq();const opts=shuffle([target,...shuffle(allSqs().filter(s=>s!==target)).slice(0,3)]);
+    this.st={target,opts};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="ibanner">A square is highlighted — what's its name?</div>
+      <div id="lb"></div>
+      <div class="agrid" style="margin-top:9px">${opts.map(o=>`<button class="ab" onclick="Drills._ns_ans('${o}')">${o}</button>`).join('')}</div>
+      <div class="fb" id="fb"></div>`;
+    setTimeout(()=>renderBoard('lb',{hi:[target],clickable:false}),30);
+  },
+  _ns_ans(ans){
+    const ok=ans===this.st.target;
+    document.querySelectorAll('.ab').forEach(b=>{b.onclick=null;if(b.textContent.trim()===this.st.target)b.classList.add('cor');else if(b.textContent.trim()===ans&&!ok)b.classList.add('wrg')});
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');fb.textContent=ok?`✓ Correct! That's ${this.st.target}.`:`✗ It was ${this.st.target}.`;
+    this.record(ok,this.st.target);setTimeout(()=>this.next('_name_square'),1150);
+  },
+
+  /* ─ Same Color ─ */
+  _same_color(){
+    const sq1=weightedRandSq();let sq2=weightedRandSq();while(sq2===sq1)sq2=weightedRandSq();
+    const same=sqColor(sq1)===sqColor(sq2);this.st={sq1,sq2,same};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="qcard"><div class="qlbl">Same color?</div>
+      <div style="display:flex;gap:16px;justify-content:center;align-items:center;margin:10px 0">
+        <div class="qmain">${sq1}</div><div style="font-size:1rem;color:var(--mut)">vs</div><div class="qmain">${sq2}</div></div>
+      <div class="qsub">Both odd or both even = Dark (same) | Mixed = Light (diff)</div></div>
+      <div class="agrid"><button class="ab" id="ab0" onclick="Drills._smc_ans(true)">✅ Same</button><button class="ab" id="ab1" onclick="Drills._smc_ans(false)">❌ Different</button></div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _smc_ans(ans){
+    const ok=ans===this.st.same;
+    document.querySelectorAll('.ab').forEach(b=>b.onclick=null);
+    $('ab0').classList.add(this.st.same?'cor':'');$('ab1').classList.add(!this.st.same?'cor':'');
+    if(!ok)(ans?$('ab0'):$('ab1')).classList.add('wrg');
+    const c1=sqColor(this.st.sq1),c2=sqColor(this.st.sq2);
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ Both are ${c1}.`:`✗ ${this.st.sq1}=${c1}, ${this.st.sq2}=${c2}.`;
+    this.record(ok);setTimeout(()=>this.next('_same_color'),1200);
+  },
+
+  /* ─ Knight Vision ─ */
+  _knight_vision(){
+    const sq=randSq();const moves=knightMoves(sq);
+    this.st={sq,moves,selected:new Set(),confirmed:false};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="ibanner">Tap ALL squares <strong style="color:var(--gold)">♞ ${sq}</strong> can reach, then Confirm</div>
+      <div id="lb"></div>
+      <button class="btn btg" id="cfbtn" onclick="Drills._kv_confirm()" style="margin-top:7px">Confirm (${moves.length} moves)</button>
+      <div class="fb" id="fb"></div>`;
+    setTimeout(()=>renderBoard('lb',{pieces:{[sq]:'♘'},onClick:(s,cell)=>Drills._kv_tap(s,cell)}),30);
+  },
+  _kv_tap(s,cell){if(this.st.confirmed||s===this.st.sq)return;if(this.st.selected.has(s)){this.st.selected.delete(s);cell.classList.remove('dim2');}else{this.st.selected.add(s);cell.classList.add('dim2');}},
+  _kv_confirm(){
+    this.st.confirmed=true;const{sq,moves,selected}=this.st;let correct=0,wrong=0;
+    allSqs().forEach(s=>{if(s===sq)return;const sh=moves.includes(s),wt=selected.has(s);if(sh&&wt)correct++;else if(!sh&&wt)wrong++;const c=getCell(s);if(!c)return;c.classList.remove('dim2');if(sh)c.classList.add('ok2');else if(wt)c.classList.add('err2');});
+    const ok=correct===moves.length&&wrong===0;
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ Perfect! All ${moves.length} knight moves!`:`${correct}/${moves.length} correct, ${wrong} wrong. Green=correct.`;
+    this.record(ok);setTimeout(()=>this.next('_knight_vision'),2000);
+  },
+
+  /* ─ Bishop Lines ─ */
+  _bishop_lines(){
+    const sq=randSq();const moves=bishopMoves(sq);
+    this.st={sq,moves,selected:new Set(),confirmed:false};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="ibanner">Tap ALL squares <strong style="color:var(--gold)">♝ ${sq}</strong> can reach diagonally</div>
+      <div id="lb"></div>
+      <button class="btn btg" onclick="Drills._bl_confirm()" style="margin-top:7px">Confirm (${moves.length} squares)</button>
+      <div class="fb" id="fb"></div>`;
+    setTimeout(()=>renderBoard('lb',{pieces:{[sq]:'♗'},onClick:(s,cell)=>Drills._bl_tap(s,cell)}),30);
+  },
+  _bl_tap(s,cell){if(this.st.confirmed||s===this.st.sq)return;if(this.st.selected.has(s)){this.st.selected.delete(s);cell.classList.remove('dim2');}else{this.st.selected.add(s);cell.classList.add('dim2');}},
+  _bl_confirm(){
+    this.st.confirmed=true;const{sq,moves,selected}=this.st;let correct=0,wrong=0;
+    allSqs().forEach(s=>{if(s===sq)return;const sh=moves.includes(s),wt=selected.has(s);if(sh&&wt)correct++;else if(!sh&&wt)wrong++;const c=getCell(s);if(!c)return;c.classList.remove('dim2');if(sh)c.classList.add('ok2');else if(wt)c.classList.add('err2');});
+    const ok=correct===moves.length&&wrong===0;
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ Perfect! All ${moves.length} diagonal squares!`:`${correct}/${moves.length} correct, ${wrong} wrong.`;
+    this.record(ok);setTimeout(()=>this.next('_bishop_lines'),2000);
+  },
+
+  /* ─ Same Diagonal ─ */
+  _same_diagonal(){
+    let sq1=randSq(),sq2=randSq();while(sq2===sq1)sq2=randSq();
+    const same=sameDiag(sq1,sq2);this.st={sq1,sq2,same};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="qcard"><div class="qlbl">Same Diagonal?</div>
+      <div style="display:flex;gap:16px;justify-content:center;align-items:center;margin:10px 0">
+        <div class="qmain">${sq1}</div><div style="font-size:1rem;color:var(--mut)">↗</div><div class="qmain">${sq2}</div></div>
+      <div class="qsub">|file1−file2| = |rank1−rank2| → same diagonal</div></div>
+      <div class="agrid"><button class="ab" id="ab0" onclick="Drills._sd_ans(true)">↗ Same</button><button class="ab" id="ab1" onclick="Drills._sd_ans(false)">✗ Different</button></div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _sd_ans(ans){
+    const ok=ans===this.st.same;
+    document.querySelectorAll('.ab').forEach(b=>b.onclick=null);
+    $('ab0').classList.add(this.st.same?'cor':'');$('ab1').classList.add(!this.st.same?'cor':'');
+    if(!ok)(ans?$('ab0'):$('ab1')).classList.add('wrg');
+    const{sq1,sq2}=this.st;
+    const f1=sq1.charCodeAt(0)-97,r1=parseInt(sq1[1])-1,f2=sq2.charCodeAt(0)-97,r2=parseInt(sq2[1])-1;
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ Correct! |${Math.abs(f1-f2)}|=${Math.abs(r1-r2)}? → ${this.st.same?'Yes':'No'}`:`✗ |file diff|=${Math.abs(f1-f2)}, |rank diff|=${Math.abs(r1-r2)} → ${this.st.same?'Same diagonal':'Different diagonals'}`;
+    this.record(ok);setTimeout(()=>this.next('_same_diagonal'),1300);
+  },
+
+  /* ─ Fork Finder ─ */
+  _fork_finder(){
+    let sq1=randSq(),sq2=randSq();while(sq2===sq1||Math.abs(sq1.charCodeAt(0)-sq2.charCodeAt(0))<2)sq2=randSq();
+    const forks=knightForks(sq1,sq2);
+    const hasFork=forks.length>0;
+    this.st={sq1,sq2,hasFork,forks};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="qcard"><div class="qlbl">Knight Fork?</div>
+      <div style="display:flex;gap:16px;justify-content:center;align-items:center;margin:10px 0">
+        <div class="qmain">${sq1}</div><div style="font-size:1rem;color:var(--mut)">⚔</div><div class="qmain">${sq2}</div></div>
+      <div class="qsub">Is there a square where a ♞ forks BOTH of these squares?</div></div>
+      <div class="agrid"><button class="ab" id="ab0" onclick="Drills._ff_ans(true)">⚔ Fork Exists</button><button class="ab" id="ab1" onclick="Drills._ff_ans(false)">✗ No Fork</button></div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _ff_ans(ans){
+    const ok=ans===this.st.hasFork;
+    document.querySelectorAll('.ab').forEach(b=>b.onclick=null);
+    $('ab0').classList.add(this.st.hasFork?'cor':'');$('ab1').classList.add(!this.st.hasFork?'cor':'');
+    if(!ok)(ans?$('ab0'):$('ab1')).classList.add('wrg');
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    const forkStr=this.st.forks.length>0?` Fork squares: ${this.st.forks.slice(0,3).join(', ')}`:'';
+    fb.textContent=ok?`✓ ${this.st.hasFork?'Fork exists!'+forkStr:'No fork possible.'}`:`✗ ${this.st.hasFork?'Fork exists from: '+this.st.forks.slice(0,2).join(', '):'No square can fork both.'}`;
+    this.record(ok);setTimeout(()=>this.next('_fork_finder'),1400);
+  },
+
+  /* ─ Rank/File Share ─ */
+  _rank_file(){
+    let sq1=randSq(),sq2=randSq();while(sq2===sq1)sq2=randSq();
+    const same=sameRF(sq1,sq2);const sameType=sq1[0]===sq2[0]?'file':sq1[1]===sq2[1]?'rank':'neither';
+    this.st={sq1,sq2,same,sameType};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="qcard"><div class="qlbl">Same Rank or File?</div>
+      <div style="display:flex;gap:16px;justify-content:center;align-items:center;margin:10px 0">
+        <div class="qmain">${sq1}</div><div style="font-size:1rem;color:var(--mut)">⊞</div><div class="qmain">${sq2}</div></div>
+      <div class="qsub">Can a rook travel between them in ONE move?</div></div>
+      <div class="agrid"><button class="ab" id="ab0" onclick="Drills._rf_ans(true)">✅ Yes (same rank/file)</button><button class="ab" id="ab1" onclick="Drills._rf_ans(false)">❌ No</button></div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _rf_ans(ans){
+    const ok=ans===this.st.same;
+    document.querySelectorAll('.ab').forEach(b=>b.onclick=null);
+    $('ab0').classList.add(this.st.same?'cor':'');$('ab1').classList.add(!this.st.same?'cor':'');
+    if(!ok)(ans?$('ab0'):$('ab1')).classList.add('wrg');
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ ${this.st.same?'Same '+this.st.sameType+'!':'Different rank and file.'}`:`✗ They share a ${this.st.same?this.st.sameType:'neither rank nor file'}.`;
+    this.record(ok);setTimeout(()=>this.next('_rank_file'),1200);
+  },
+
+  /* ─ Piece Attacks ─ */
+  _piece_attacks(){
+    const PIECES=[{sym:'♘',name:'Knight',id:'N'},{sym:'♗',name:'Bishop',id:'B'},{sym:'♖',name:'Rook',id:'R'},{sym:'♕',name:'Queen',id:'Q'}];
+    const pc=PIECES[Math.floor(Math.random()*PIECES.length)];
+    const from=randSq();let target=randSq();while(target===from)target=randSq();
+    const can=canPieceAttack(pc.id,from,target);
+    this.st={pc,from,target,can};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="qcard"><div class="qlbl">Can it attack?</div>
+      <div style="margin:10px 0;text-align:center">
+        <div style="font-size:1.3rem;color:var(--mut);margin-bottom:6px">${pc.sym} ${pc.name} on</div>
+        <div class="qmain">${from}</div>
+        <div style="font-size:0.9rem;color:var(--mut);margin:8px 0">→ can it attack →</div>
+        <div class="qmain" style="color:var(--red)">${target}</div>
+      </div>
+      <div class="qsub">No blocking pieces. Can this piece reach that square in one move?</div></div>
+      <div class="agrid"><button class="ab" id="ab0" onclick="Drills._pa_ans(true)">⚔ Yes, attacks</button><button class="ab" id="ab1" onclick="Drills._pa_ans(false)">✗ Cannot reach</button></div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _pa_ans(ans){
+    const ok=ans===this.st.can;
+    document.querySelectorAll('.ab').forEach(b=>b.onclick=null);
+    $('ab0').classList.add(this.st.can?'cor':'');$('ab1').classList.add(!this.st.can?'cor':'');
+    if(!ok)(ans?$('ab0'):$('ab1')).classList.add('wrg');
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ ${this.st.can?this.st.pc.name+' on '+this.st.from+' attacks '+this.st.target+'!':this.st.pc.name+' cannot reach '+this.st.target+'.'}`:`✗ A ${this.st.pc.name} from ${this.st.from} ${this.st.can?'CAN':'CANNOT'} attack ${this.st.target}.`;
+    this.record(ok);setTimeout(()=>this.next('_piece_attacks'),1300);
+  },
+
+  /* ─ King Distance ─ */
+  _king_distance(){
+    const sq1=randSq();let sq2=randSq();while(sq2===sq1)sq2=randSq();
+    const dist=kingDist(sq1,sq2);
+    const opts=shuffle([...new Set([dist,Math.max(1,dist-1),dist+1,Math.max(1,dist-2)])]).slice(0,4);
+    if(!opts.includes(dist))opts[0]=dist;
+    this.st={sq1,sq2,dist,opts:shuffle(opts)};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="qcard"><div class="qlbl">King moves needed?</div>
+      <div style="display:flex;gap:16px;justify-content:center;align-items:center;margin:10px 0">
+        <div class="qmain">${sq1}</div><div style="font-size:1.5rem">♔</div><div class="qmain">${sq2}</div></div>
+      <div class="qsub">How many moves does a king need to walk from ${sq1} to ${sq2}?<br>(max of file diff or rank diff)</div></div>
+      <div class="agrid">${this.st.opts.map(o=>`<button class="ab" onclick="Drills._kd_ans(${o})">${o} move${o!==1?'s':''}</button>`).join('')}</div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _kd_ans(ans){
+    const ok=ans===this.st.dist;
+    document.querySelectorAll('.ab').forEach(b=>{b.onclick=null;if(parseInt(b.textContent)===this.st.dist)b.classList.add('cor');else if(parseInt(b.textContent)===ans&&!ok)b.classList.add('wrg')});
+    const{sq1,sq2,dist}=this.st;
+    const fd=Math.abs(sq1.charCodeAt(0)-sq2.charCodeAt(0)),rd=Math.abs(parseInt(sq1[1])-parseInt(sq2[1]));
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ ${dist} moves! (max of file diff ${fd} and rank diff ${rd})`:`✗ It's ${dist}. max(file diff ${fd}, rank diff ${rd}) = ${dist}`;
+    this.record(ok);setTimeout(()=>this.next('_king_distance'),1400);
+  },
+
+  /* ─ Move Sequence ─ */
+  _move_sequence(){
+    const SEQS=[
+      {piece:'♘',name:'Knight',start:'g1',moves:['f3','e5'],final:'e5',text:['g1→f3','f3→e5']},
+      {piece:'♘',name:'Knight',start:'b1',moves:['c3','d5'],final:'d5',text:['b1→c3','c3→d5']},
+      {piece:'♗',name:'Bishop',start:'c1',moves:['e3','h6'],final:'h6',text:['c1→e3','e3→h6']},
+      {piece:'♖',name:'Rook',start:'a1',moves:['a7','h7'],final:'h7',text:['a1→a7','a7→h7']},
+      {piece:'♕',name:'Queen',start:'d1',moves:['d4','h4'],final:'h4',text:['d1→d4','d4→h4']},
+      {piece:'♘',name:'Knight',start:'g8',moves:['f6','d5'],final:'d5',text:['g8→f6','f6→d5']},
+      {piece:'♗',name:'Bishop',start:'f1',moves:['c4','g8'],final:'g8',text:['f1→c4','c4→g8']},
+      {piece:'♖',name:'Rook',start:'h1',moves:['h5','d5'],final:'d5',text:['h1→h5','h5→d5']},
+    ];
+    const seq=SEQS[Math.floor(Math.random()*SEQS.length)];
+    const wrongs=shuffle(allSqs().filter(s=>s!==seq.final)).slice(0,3);
+    const opts=shuffle([seq.final,...wrongs]);
+    this.st={seq,opts};
+    $('scr-active').innerHTML=`${this.hdr()}
+      <div class="vc-moves">
+        <div class="vcm-title">Piece Movement — No Board!</div>
+        <div class="vcm-item"><span class="vcm-n">1.</span><span class="vcm-t">${seq.piece} starts on <strong style="color:var(--gold)">${seq.start}</strong></span></div>
+        ${seq.text.map((t,i)=>`<div class="vcm-item"><span class="vcm-n">${i+2}.</span><span class="vcm-t vcm-new">${seq.piece} moves <strong>${t}</strong></span></div>`).join('')}
+      </div>
+      <div class="vc-ask"><div class="vca-lbl">Visualize</div><div class="vca-q">Where is the ${seq.name} now?</div></div>
+      <div class="cgrid">${opts.map(o=>`<button class="cb2" onclick="Drills._ms_ans('${o}')">${o}</button>`).join('')}</div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _ms_ans(ans){
+    const{seq,opts}=this.st,ok=ans===seq.final;
+    document.querySelectorAll('.cb2').forEach(b=>{b.onclick=null;if(b.textContent.trim()===seq.final)b.classList.add('cor');else if(b.textContent.trim()===ans&&!ok)b.classList.add('wrg')});
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ ${seq.name} is on ${seq.final}!`:`✗ The ${seq.name} ended on ${seq.final}, not ${ans}. Follow each move!`;
+    this.record(ok);setTimeout(()=>this.next('_move_sequence'),1400);
+  },
+};
+
+/* ════════════════════════════════════════════
+   GAMES ENGINE
+════════════════════════════════════════════ */
+const Games={
+  gid:null,st:{},_timer:null,
+  start(id){this.gid=id;this.st={};clearInterval(this._timer);App.nav('active');this['_'+id.replace(/-/g,'_')+'_init']()},
+
+  /* ═ Speed Coordinates ═ */
+  _speed_coords_init(){
+    this.st={score:0,tl:60,target:randSq()};
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="clearInterval(Games._timer);App.back()"><button class="bbtn">←</button><span class="blbl">⚡ Speed Coordinates</span></div>
+      <div class="gbar">
+        <div class="gbi"><span class="gbv" id="gs">0</span><span class="gbl">Score</span></div>
+        <div class="gbi"><div class="tring"><svg><circle class="trbg" cx="27.5" cy="27.5" r="23.5"/><circle class="trfg" id="trfg" cx="27.5" cy="27.5" r="23.5"/></svg><span class="tnum" id="tnum">60</span></div></div>
+        <div class="gbi"><span class="gbv">${P.d.gameHigh['speed-coords']||0}</span><span class="gbl">Best</span></div>
+      </div>
+      <div class="ibanner">Tap <strong style="color:var(--gold);font-size:1.1em" id="sc-t">${this.st.target}</strong></div>
+      <div id="lb"></div>`;
+    setTimeout(()=>{renderBoard('lb',{onClick:(s)=>Games._sc_tap(s)});this._timer=setInterval(()=>Games._sc_tick(),1000)},30);
+  },
+  _sc_tap(sq){
+    const{target}=this.st;
+    if(sq===target){
+      this.st.score++;const c=getCell(sq);if(c){c.classList.add('ok2');setTimeout(()=>c.classList.remove('ok2'),200);}
+      do{this.st.target=randSq();}while(this.st.target===sq);
+      if($('sc-t'))$('sc-t').textContent=this.st.target;if($('gs'))$('gs').textContent=this.st.score;
+      P.addXP(3);P.touchStreak();
+    }else{const c=getCell(sq);if(c){c.classList.add('err2');setTimeout(()=>c.classList.remove('err2'),280);}}
+  },
+  _sc_tick(){
+    this.st.tl--;const tl=this.st.tl,pct=tl/60;
+    const fg=$('trfg');if(fg){fg.style.strokeDashoffset=151*(1-pct);if(tl<=10)fg.classList.add('hot');}
+    const tn=$('tnum');if(tn)tn.textContent=tl;
+    if(tl<=0){clearInterval(this._timer);this._sc_end();}
+  },
+  _sc_end(){
+    const{score}=this.st,best=P.d.gameHigh['speed-coords']||0,nb=score>best;
+    if(nb){P.d.gameHigh['speed-coords']=score;P.save();}P.touchStreak();App.buildGames();P.checkAchievements();
+    $('scr-active').innerHTML=`<div class="gres">
+      <div class="gri">${nb?'🏆':score>=15?'⚡':'🎯'}</div>
+      <div class="grtl">${nb?'New High Score!':score>=15?'Speed Demon!':'Time\'s Up!'}</div>
+      <div class="grsc" style="color:${nb?'var(--gold)':'var(--txt)'}">${score}</div>
+      <div class="grsu">squares in 60 seconds${nb?' 🎉':''}</div>
+      <button class="btn btg" style="margin-top:22px" onclick="Games.start('speed-coords')">Play Again</button>
+      <button class="btn btgh" onclick="App.nav('games')">All Games</button></div>`;
+  },
+
+  /* ═ Blind Moves ═ */
+  _blind_moves_init(){this.st={score:0,round:0,total:10};this._bm_round()},
+  _bm_round(){
+    const PS=[{s:'♘',n:'Knight',id:'N',fn:knightMoves},{s:'♗',n:'Bishop',id:'B',fn:bishopMoves},{s:'♖',n:'Rook',id:'R',fn:rookMoves},{s:'♕',n:'Queen',id:'Q',fn:queenMoves}];
+    const pc=PS[Math.floor(Math.random()*PS.length)];
+    const from=randSq();const possible=pc.fn(from);if(possible.length<3){this._bm_round();return;}
+    const correct=possible[Math.floor(Math.random()*possible.length)];
+    const opts=shuffle([correct,...shuffle(allSqs().filter(s=>!possible.includes(s)&&s!==from)).slice(0,3)]);
+    this.st.cur={pc,from,correct,opts};this.st.round++;
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="App.back()"><button class="bbtn">←</button><span class="blbl">♟ Blind Moves</span></div>
+      <div class="dhdr"><span class="dprog">Round ${this.st.round}/${this.st.total}</span><div class="spill"><span class="sc2">${this.st.score}✓</span></div></div>
+      <div class="bmdisp"><div class="bmmove">${pc.s} ${pc.n}</div><div class="bmsub">on <strong style="color:var(--gold)">${from}</strong> — where can it land?</div><div class="bmsub" style="margin-top:5px;font-size:0.72rem">Pick a valid destination (no board shown)</div></div>
+      <div class="cgrid">${opts.map(o=>`<button class="cb2" onclick="Games._bm_ans('${o}')">${o}</button>`).join('')}</div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _bm_ans(ans){
+    const{correct,from,pc}=this.st.cur,ok=ans===correct;
+    document.querySelectorAll('.cb2').forEach(b=>{b.onclick=null;if(b.textContent.trim()===correct)b.classList.add('cor');else if(b.textContent.trim()===ans&&!ok)b.classList.add('wrg')});
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ ${pc.n} from ${from} can go to ${correct}.`:`✗ ${pc.n} on ${from} → ${correct} is valid, not ${ans}.`;
+    if(ok){this.st.score++;P.addXP(15);}P.recordAnswer(ok);P.touchStreak();
+    setTimeout(()=>{if(this.st.round>=this.st.total)this._bm_end();else this._bm_round()},1250);
+  },
+  _bm_end(){
+    const{score,total}=this.st,best=P.d.gameHigh['blind-moves']||0,nb=score>best;
+    if(nb){P.d.gameHigh['blind-moves']=score;P.save();}P.touchStreak();App.buildGames();P.checkAchievements();
+    $('scr-active').innerHTML=`<div class="gres">
+      <div class="gri">${score===total?'🧠':score>=7?'⚡':'💪'}</div>
+      <div class="grtl">${score===total?'Perfect Vision!':score>=7?'Sharp Mind!':'Keep Training!'}</div>
+      <div class="grsc">${score}/${total}</div>
+      <div class="grsu">${nb?'New personal best! 🎉':'correct answers'}</div>
+      <button class="btn btg" style="margin-top:22px" onclick="Games.start('blind-moves')">Play Again</button>
+      <button class="btn btgh" onclick="App.nav('games')">All Games</button></div>`;
+  },
+
+  /* ═ Visualization Chain ═ */
+  _viz_chain_init(){
+    this.st={score:0,round:0,total:6};this._vc_round();
+  },
+  _vc_round(){
+    this.st.round++;
+    /* Build a small 4-piece position */
+    const WHITES=[{sym:'♘',sq:'f3'},{sym:'♗',sq:'c4'},{sym:'♖',sq:'a1'},{sym:'♕',sq:'d1'},{sym:'♔',sq:'e1'}];
+    const BLACKS=[{sym:'♟',sq:'e5'},{sym:'♟',sq:'d5'},{sym:'♚',sq:'e8'},{sym:'♞',sq:'c6'}];
+    const pieces={};WHITES.forEach(p=>pieces[p.sq]=p.sym);BLACKS.forEach(p=>pieces[p.sq]=p.sym);
+    /* Pick one white piece to move */
+    const movable=WHITES.filter(p=>p.sym!=='♔');
+    const mover=movable[Math.floor(Math.random()*movable.length)];
+    const moveOptions={
+      '♘':{from:'f3',to:'e5',desc:'Knight f3→e5'},
+      '♗':{from:'c4',to:'f7',desc:'Bishop c4→f7'},
+      '♖':{from:'a1',to:'a8',desc:'Rook a1→a8'},
+      '♕':{from:'d1',to:'h5',desc:'Queen d1→h5'},
+    };
+    const mv=moveOptions[mover.sym]||{from:mover.sq,to:'e5',desc:`${mover.sym} to e5`};
+    /* Ask where the piece lands after the move */
+    const correct=mv.to;
+    const wrongs=shuffle(allSqs().filter(s=>s!==correct&&s!==mv.from)).slice(0,3);
+    const opts=shuffle([correct,...wrongs]);
+    this.st.cur={pieces,mover,mv,correct,opts};
+    /* Phase 1: show position for 4 seconds */
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="clearInterval(Games._timer);App.back()"><button class="bbtn">←</button><span class="blbl">👁 Visualization Chain</span></div>
+      <div class="dhdr"><span class="dprog">Round ${this.st.round}/${this.st.total}</span><div class="spill"><span class="sc2">${this.st.score}✓</span></div></div>
+      <div class="ibanner">📸 <strong>Memorize this position!</strong> Board hides in <span id="vcct">4</span>s</div>
+      <div class="mbt"><div class="mbf" id="mbar" style="width:100%"></div></div>
+      <div id="lb"></div>`;
+    setTimeout(()=>renderBoard('lb',{pieces,clickable:false}),30);
+    let t=4;this._timer=setInterval(()=>{t--;if($('vcct'))$('vcct').textContent=t;if($('mbar'))$('mbar').style.width=(t/4*100)+'%';if(t<=0){clearInterval(this._timer);Games._vc_announce();}},1000);
+  },
+  _vc_announce(){
+    const{mover,mv,correct,opts}=this.st.cur;
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="App.back()"><button class="bbtn">←</button><span class="blbl">👁 Visualization Chain</span></div>
+      <div class="dhdr"><span class="dprog">Round ${this.st.round}/${this.st.total}</span><div class="spill"><span class="sc2">${this.st.score}✓</span></div></div>
+      <div class="vc-moves">
+        <div class="vcm-title">Board Hidden — Visualize!</div>
+        <div class="vcm-item"><span class="vcm-n">→</span><span class="vcm-t vcm-new">${mover.sym} <strong>${mv.desc}</strong></span></div>
+      </div>
+      <div class="vc-ask"><div class="vca-lbl">After that move...</div><div class="vca-q">Where does the ${mv.desc.split(' ')[0]} end up?</div></div>
+      <div class="cgrid">${opts.map(o=>`<button class="cb2" onclick="Games._vc_ans('${o}')">${o}</button>`).join('')}</div>
+      <div class="fb" id="fb"></div>`;
+  },
+  _vc_ans(ans){
+    const{correct,mv,mover}=this.st.cur,ok=ans===correct;
+    document.querySelectorAll('.cb2').forEach(b=>{b.onclick=null;if(b.textContent.trim()===correct)b.classList.add('cor');else if(b.textContent.trim()===ans&&!ok)b.classList.add('wrg')});
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');
+    fb.textContent=ok?`✓ Correct! ${mv.desc} lands on ${correct}.`:`✗ ${mv.desc} ends on ${correct}. Did you track it mentally?`;
+    if(ok){this.st.score++;P.addXP(20);}P.recordAnswer(ok);P.touchStreak();
+    setTimeout(()=>{if(this.st.round>=this.st.total)this._vc_end();else this._vc_round()},1350);
+  },
+  _vc_end(){
+    const{score,total}=this.st,best=P.d.gameHigh['viz-chain']||0,nb=score>best;
+    if(nb){P.d.gameHigh['viz-chain']=score;P.save();}P.touchStreak();App.buildGames();P.checkAchievements();
+    $('scr-active').innerHTML=`<div class="gres">
+      <div class="gri">${score===total?'👁':score>=4?'🧠':'💪'}</div>
+      <div class="grtl">${score===total?'Perfect Visualization!':score>=4?'Strong Mind\'s Eye!':'Keep Training!'}</div>
+      <div class="grsc">${score}/${total}</div>
+      <div class="grsu">${nb?'New best! 🎉':''}</div>
+      <button class="btn btg" style="margin-top:22px" onclick="Games.start('viz-chain')">Play Again</button>
+      <button class="btn btgh" onclick="App.nav('games')">All Games</button></div>`;
+  },
+
+  /* ═ Diagonal Hunt ═ */
+  _diagonal_hunt_init(){this.st={score:0,round:0,total:8};this._dh_round()},
+  _dh_round(){
+    this.st.round++;const sq=randSq();const moves=bishopMoves(sq);const sel=new Set();
+    this.st.cur={sq,moves,sel,confirmed:false};
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="App.back()"><button class="bbtn">←</button><span class="blbl">♝ Diagonal Hunt</span></div>
+      <div class="dhdr"><span class="dprog">Round ${this.st.round}/${this.st.total}</span><div class="spill"><span class="sc2">${this.st.score}✓</span></div></div>
+      <div class="ibanner">Tap ALL diagonal squares from <strong style="color:var(--gold)">${sq}</strong> (${moves.length} total)</div>
+      <div id="lb"></div>
+      <button class="btn btg" style="margin-top:7px" onclick="Games._dh_confirm()">Confirm (${moves.length} squares)</button>
+      <div class="fb" id="fb"></div>`;
+    setTimeout(()=>renderBoard('lb',{pieces:{[sq]:'♗'},onClick:(s,cell)=>Games._dh_tap(s,cell)}),30);
+  },
+  _dh_tap(s,cell){const{sq,sel,confirmed}=this.st.cur;if(confirmed||s===sq)return;if(sel.has(s)){sel.delete(s);cell.classList.remove('dim2');}else{sel.add(s);cell.classList.add('dim2');}},
+  _dh_confirm(){
+    this.st.cur.confirmed=true;const{sq,moves,sel}=this.st.cur;let c=0,w=0;
+    allSqs().forEach(s=>{if(s===sq)return;const sh=moves.includes(s),wt=sel.has(s);if(sh&&wt)c++;else if(!sh&&wt)w++;const cell=getCell(s);if(!cell)return;cell.classList.remove('dim2');if(sh)cell.classList.add('ok2');else if(wt)cell.classList.add('err2');});
+    const ok=c===moves.length&&w===0;
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');fb.textContent=ok?`✓ Perfect! All ${moves.length} diagonals!`:`${c}/${moves.length} correct, ${w} extra.`;
+    if(ok){this.st.score++;P.addXP(15);}P.recordAnswer(ok);P.touchStreak();
+    setTimeout(()=>{if(this.st.round>=this.st.total)this._dh_end();else this._dh_round()},2000);
+  },
+  _dh_end(){
+    const{score,total}=this.st,best=P.d.gameHigh['diagonal-hunt']||0,nb=score>best;
+    if(nb){P.d.gameHigh['diagonal-hunt']=score;P.save();}P.touchStreak();App.buildGames();
+    $('scr-active').innerHTML=`<div class="gres">
+      <div class="gri">${score===total?'♝':'💪'}</div><div class="grtl">${score===total?'Bishop Master!':score>=5?'Sharp Diagonals!':'Keep Training!'}</div>
+      <div class="grsc">${score}/${total}</div><div class="grsu">${nb?'New best! 🎉':''}</div>
+      <button class="btn btg" style="margin-top:22px" onclick="Games.start('diagonal-hunt')">Play Again</button>
+      <button class="btn btgh" onclick="App.nav('games')">All Games</button></div>`;
+  },
+
+  /* ═ Flash Memory ═ */
+  _memory_flash_init(){this.st={score:0,round:0,total:5};this._mf_round()},
+  _mf_round(){
+    this.st.round++;
+    const PS=['♔','♕','♖','♗','♘','♙'];const count=2+Math.min(3,this.st.round);
+    const sqs=shuffle(allSqs()).slice(0,count);const pieces={};
+    sqs.forEach(s=>pieces[s]=PS[Math.floor(Math.random()*PS.length)]);
+    this.st.cur={pieces,sqs,placed:{},tl:4+count};let t=this.st.cur.tl;
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="clearInterval(Games._timer);App.back()"><button class="bbtn">←</button><span class="blbl">🧠 Flash Memory</span></div>
+      <div class="dhdr"><span class="dprog">Round ${this.st.round}/${this.st.total}</span><div class="spill"><span class="sc2">${this.st.score}✓</span></div></div>
+      <div class="ibanner">Memorize <strong>${count} pieces</strong> in <span id="mct">${t}</span>s</div>
+      <div class="mbt"><div class="mbf" id="mbar" style="width:100%"></div></div>
+      <div id="lb"></div>`;
+    setTimeout(()=>{
+      renderBoard('lb',{pieces,clickable:false});
+      this._timer=setInterval(()=>{t--;if($('mbar'))$('mbar').style.width=(t/this.st.cur.tl*100)+'%';if($('mct'))$('mct').textContent=t;if(t<=0){clearInterval(this._timer);Games._mf_place();}},1000);
+    },30);
+  },
+  _mf_place(){
+    const{pieces,sqs}=this.st.cur;this.st.cur.remaining=[...sqs];this._mf_next();
+  },
+  _mf_next(){
+    const{pieces,remaining}=this.st.cur;if(!remaining.length){this._mf_check();return;}
+    const tsq=remaining[0],tp=pieces[tsq];
+    const all=['♔','♕','♖','♗','♘','♙'];const opts=shuffle([tp,...shuffle(all.filter(p=>p!==tp)).slice(0,3)]);
+    $('scr-active').innerHTML=`
+      <div class="brow" onclick="App.back()"><button class="bbtn">←</button><span class="blbl">🧠 Flash Memory</span></div>
+      <div class="dhdr"><span class="dprog">Recall ${this.st.cur.sqs.length-remaining.length+1}/${this.st.cur.sqs.length}</span><div class="spill"><span class="sc2">${this.st.score}✓</span></div></div>
+      <div class="ibanner">What piece was on <strong style="color:var(--gold);font-size:1.1em">${tsq}</strong>?</div>
+      <div id="lb"></div>
+      <div class="agrid" style="grid-template-columns:repeat(4,1fr);margin-top:9px">
+        ${opts.map(p=>`<button class="ab" style="font-size:1.45rem;padding:13px 5px" onclick="Games._mf_ans('${p}','${tsq}','${tp}')">${p}</button>`).join('')}
+      </div>
+      <div class="fb" id="fb"></div>`;
+    setTimeout(()=>renderBoard('lb',{hi:[tsq],dim:this.st.cur.sqs.filter(s=>s!==tsq),clickable:false}),30);
+  },
+  _mf_ans(ans,tsq,tp){
+    const ok=ans===tp;
+    document.querySelectorAll('.ab').forEach(b=>{b.onclick=null;if(b.textContent.trim()===tp)b.classList.add('cor');else if(b.textContent.trim()===ans&&!ok)b.classList.add('wrg')});
+    const fb=$('fb');fb.className='fb show '+(ok?'ok':'no');fb.textContent=ok?`✓ ${tp} on ${tsq}!`:`✗ It was ${tp} on ${tsq}.`;
+    this.st.cur.placed[tsq]={ans,ok};if(ok)P.addXP(10);P.recordAnswer(ok);P.touchStreak();
+    this.st.cur.remaining.shift();setTimeout(()=>this._mf_next(),1050);
+  },
+  _mf_check(){
+    const allOk=Object.values(this.st.cur.placed).every(r=>r.ok);if(allOk)this.st.score++;
+    if(this.st.round>=this.st.total){
+      const{score,total}=this.st,best=P.d.gameHigh['memory-flash']||0,nb=score>best;
+      if(nb){P.d.gameHigh['memory-flash']=score;P.save();}P.touchStreak();App.buildGames();P.checkAchievements();
+      $('scr-active').innerHTML=`<div class="gres">
+        <div class="gri">${score===total?'🧠':score>=3?'⚡':'💪'}</div><div class="grtl">${score===total?'Perfect Memory!':score>=3?'Strong Recall!':'Keep Training!'}</div>
+        <div class="grsc">${score}/${total}</div><div class="grsu">${nb?'New best! 🎉':'perfect recall rounds'}</div>
+        <button class="btn btg" style="margin-top:22px" onclick="Games.start('memory-flash')">Play Again</button>
+        <button class="btn btgh" onclick="App.nav('games')">All Games</button></div>`;
+    }else{
+      $('scr-active').innerHTML=`<div class="ccard">
+        <div class="bem">${allOk?'🎯':'📖'}</div>
+        <div class="bnum">${this.st.round}/${this.st.total}</div>
+        <h2>${allOk?'Perfect Round!':'Round Done'}</h2>
+        <p class="sub">Score: ${this.st.score} perfect rounds so far</p>
+        <button class="btn btg" style="margin-top:18px" onclick="Games._mf_round()">Next Round →</button></div>`;
+    }
+  },
+};
+
+/* ════════════════════════════════════════════
+   STATS SCREEN
+════════════════════════════════════════════ */
+const Stats={
+  render(){
+    const cats=[{k:'basic',l:'Basic Drills'},{k:'advanced',l:'Advanced Drills'},{k:'visual',l:'Visual Drills'}];
+    const accRows=cats.map(c=>{
+      const a=P.d.catAcc['b'+c.k];const pct=a&&a.t>0?Math.round(a.c/a.t*100):0;
+      const col=pct>=80?'var(--grn)':pct>=60?'var(--gold)':'var(--red)';
+      return`<div class="acc-row"><span class="acc-lbl">${c.l}</span><div class="acc-bar"><div class="acc-fill" style="width:${pct}%;background:${col}"></div></div><span class="acc-pct">${a&&a.t>0?pct+'%':'—'}</span></div>`;
+    }).join('');
+
+    /* Heatmap */
+    const rows=[];
+    for(let rank=8;rank>=1;rank--){
+      for(let fi=0;fi<8;fi++){
+        const sq=F[fi]+rank;const a=P.d.sqA[sq];
+        let bg='var(--card2)';let txt='';
+        if(a&&a.t>=2){const r=a.c/a.t;bg=r>=0.8?'rgba(62,207,142,0.4)':r>=0.5?'rgba(242,193,78,0.3)':'rgba(232,83,74,0.45)';txt=Math.round(r*100)+'%';}
+        rows.push(`<div class="hmsq" style="background:${bg}">${txt}<div class="hm-tip">${sq}${a&&a.t>0?': '+Math.round(a.c/a.t*100)+'% ('+a.t+')':`:`+' unvisited'}</div></div>`);
+      }
+    }
+
+    const weak=getWeakSqs();
+    const achHtml=ACHIEVEMENTS.map(a=>{
+      const un=P.d.achievements.includes(a.id);
+      return`<div class="ach ${un?'unlocked':''}"><div class="aemj">${a.icon}</div><div class="anm">${a.name}</div></div>`;
+    }).join('');
+
+    const li=P.lvInfo();
+    $('stats-content').innerHTML=`
+      <div class="stats-sec">
+        <h3>Level Progress</h3>
+        <div style="display:flex;justify-content:space-between;font-size:0.78rem;margin-bottom:5px"><span style="color:var(--gold);font-weight:700">${li.name}</span><span style="color:var(--mut)">${li.xpStr}</span></div>
+        <div class="xpt"><div class="xpf" style="width:${li.pct}%"></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:10px;text-align:center">
+          <div><div style="font-size:1.1rem;font-weight:800;color:var(--gold)">${P.d.totalAnswered}</div><div style="font-size:0.62rem;color:var(--mut)">TOTAL Q's</div></div>
+          <div><div style="font-size:1.1rem;font-weight:800;color:var(--grn)">${P.d.totalAnswered>0?Math.round(P.d.totalCorrect/P.d.totalAnswered*100):'—'}%</div><div style="font-size:0.62rem;color:var(--mut)">ACCURACY</div></div>
+          <div><div style="font-size:1.1rem;font-weight:800;color:var(--red)">${getWeakSqs().length}</div><div style="font-size:0.62rem;color:var(--mut)">WEAK SQS</div></div>
+        </div>
+      </div>
+      <div class="stats-sec"><h3>Accuracy by Category</h3><div class="accs">${accRows}</div></div>
+      <div class="stats-sec">
+        <h3>Square Heatmap</h3>
+        <div style="font-size:0.72rem;color:var(--mut);margin-bottom:8px">🟢 Strong &nbsp; 🟡 Improving &nbsp; 🔴 Weak &nbsp; ⬛ Unvisited</div>
+        <div class="hmboard">${rows.join('')}</div>
+        ${weak.length>0?`<div style="margin-top:10px"><div style="font-size:0.7rem;color:var(--mut);margin-bottom:5px">Your weakest squares — drill these!</div><div class="ws-row">${weak.map(s=>`<div class="ws-sq">${s}</div>`).join('')}</div></div>`:''}
+      </div>
+      <div class="stats-sec">
+        <h3>Achievements (${P.d.achievements.length}/${ACHIEVEMENTS.length})</h3>
+        <div class="ach-grid">${achHtml}</div>
+      </div>
+      <div class="stats-sec">
+        <h3>Game Best Scores</h3>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${[['speed-coords','⚡ Speed Coordinates'],['blind-moves','♟ Blind Moves (max 10)'],['viz-chain','👁 Viz Chain (max 6)'],['diagonal-hunt','♝ Diagonal Hunt (max 8)'],['memory-flash','🧠 Flash Memory (max 5)']].map(([k,l])=>`<div style="display:flex;justify-content:space-between;font-size:0.82rem;padding:5px 0;border-bottom:1px solid var(--bord)"><span style="color:var(--mut)">${l}</span><span style="color:var(--gold);font-weight:700">${P.d.gameHigh[k]||0}</span></div>`).join('')}
+        </div>
+      </div>`;
+  }
+};
+
+/* ════════════════════════════════════════════
+   APP NAVIGATION & BUILD
+════════════════════════════════════════════ */
+const App={
+  prev:'home',
+  nav(s){
+    if(s!=='active')this.prev=s;
+    document.querySelectorAll('.scr').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+    $('scr-'+s).classList.add('active');
+    const nb=$('nb-'+s);if(nb)nb.classList.add('active');
+    if(s==='stats')Stats.render();
+    window.scrollTo(0,0);
+  },
+  back(){this.nav(this.prev||'home')},
+  buildHome(){
+    const inc=LESSONS.filter(l=>!P.d.lessonsCompleted.includes(l.id));
+    const next=inc[0]||LESSONS[LESSONS.length-1];
+    $('home-next').innerHTML=`<div class="li" onclick="Lessons.start('${next.id}')">
+      <div class="lic">${next.emoji}</div>
+      <div class="lin"><h3>${next.title}</h3><p>${next.desc}</p></div>
+      <div class="lbg">${next.xp} XP</div></div>`;
+    Daily.renderHome();
+  },
+  buildLessons(){
+    $('llist').innerHTML=LESSONS.map((l,i)=>{
+      const done=P.d.lessonsCompleted.includes(l.id);
+      const locked=i>0&&!P.d.lessonsCompleted.includes(LESSONS[i-1].id);
+      return`<div class="li ${done?'done':''} ${locked?'locked':''}" onclick="${locked?'void 0':`Lessons.start('${l.id}')`}">
+        <div class="lic">${done?'✅':l.emoji}</div>
+        <div class="lin"><h3>${l.title}</h3><p>${l.desc}</p></div>
+        <div class="lbg">${done?'Done':l.xp+' XP'}</div></div>`;
+    }).join('');
+  },
+  buildDrills(tab='basic'){
+    const diffLabel={b:'Basic',i:'Inter.',a:'Adv.',v:'Visual'};
+    $('dgrid').innerHTML=DRILL_CONFIGS[tab].map(d=>{
+      const best=P.d.drillHigh[d.id]||0;
+      const stars=best>=8?'★★★':best>=5?'★★☆':best>=1?'★☆☆':'☆☆☆';
+      const hasWeak=d.cat==='basic'&&getWeakSqs().length>0;
+      return`<div class="di ${hasWeak?'has-weak':''}" onclick="Drills.start('${d.id}')">
+        <div class="sr-indicator"></div>
+        <div class="dtop"><span class="dem">${d.emoji}</span><span class="dtag ${d.diff}">${diffLabel[d.diff]}</span></div>
+        <h3>${d.title}</h3><p>${d.desc}</p>
+        <div class="dfoot"><span class="dstars">${stars}</span><span>Best: ${best}</span></div></div>`;
+    }).join('');
+  },
+  buildGames(){
+    const gh=P.d.gameHigh;
+    $('glist').innerHTML=`
+      <div class="gi" onclick="Games.start('speed-coords')">
+        <div class="giw" style="background:linear-gradient(135deg,#0f1f2a,#1a2f3a)">⚡</div>
+        <div class="ginf"><h3>Speed Coordinates</h3><p>Tap squares as fast as possible! 60 second sprint.</p><div class="gtags"><span class="gtag">60 sec</span><span class="gtag">Best: ${gh['speed-coords']||0}</span></div></div></div>
+      <div class="gi" onclick="Games.start('blind-moves')">
+        <div class="giw" style="background:linear-gradient(135deg,#1a0f2a,#2a1a3a)">♟</div>
+        <div class="ginf"><h3>Blind Moves</h3><p>Calculate where a piece can land — no board shown!</p><div class="gtags"><span class="gtag">10 rounds</span><span class="gtag">Best: ${gh['blind-moves']||0}/10</span></div></div></div>
+      <div class="gi" onclick="Games.start('viz-chain')">
+        <div class="giw" style="background:linear-gradient(135deg,#1a0a2a,#2a0a3a)">👁</div>
+        <div class="ginf"><h3>Visualization Chain</h3><p>Memorize a position, then track a move mentally. Core blindfold training!</p><div class="gtags"><span class="gtag">6 rounds</span><span class="gtag">Best: ${gh['viz-chain']||0}/6</span></div></div></div>
+      <div class="gi" onclick="Games.start('diagonal-hunt')">
+        <div class="giw" style="background:linear-gradient(135deg,#1a1a0a,#2a2a0a)">♝</div>
+        <div class="ginf"><h3>Diagonal Hunt</h3><p>Find ALL bishop diagonal squares per round.</p><div class="gtags"><span class="gtag">8 rounds</span><span class="gtag">Best: ${gh['diagonal-hunt']||0}/8</span></div></div></div>
+      <div class="gi" onclick="Games.start('memory-flash')">
+        <div class="giw" style="background:linear-gradient(135deg,#0a1a1a,#0a2a2a)">🧠</div>
+        <div class="ginf"><h3>Flash Memory</h3><p>Pieces flash on the board — then place them all from memory!</p><div class="gtags"><span class="gtag">5 rounds</span><span class="gtag">Best: ${gh['memory-flash']||0}/5</span></div></div></div>`;
+  },
+  init(){
+    P.load();P.ui();
+    this.buildHome();this.buildLessons();this.buildDrills();this.buildGames();
+  }
+};
+App.init();
+</script>
+</body>
+</html>
